@@ -15,4 +15,7 @@
 <url><loc>https://doccrafttools.com/blog/</loc></url>
 <url><loc>https://doccrafttools.com/about/</loc></url>
 <url><loc>https://doccrafttools.com/contact/</loc></url>
-<url><loc>https://doccrafttools.com/components/</loc></url></urlset>
+<url><loc>https://doccrafttools.com/components/</loc></url>  <url><loc>https://doccrafttools.com/workspace/</loc></url>
+  <url><loc>https://doccrafttools.com/purchase-order-generator/</loc></url>
+  <url><loc>https://doccrafttools.com/estimate-generator/</loc></url>
+</urlset>

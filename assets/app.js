@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
-const labels = { invoice: 'Invoice', receipt: 'Receipt', quotation: 'Quotation', rent: 'Rent Receipt', delivery: 'Delivery Note' };
-const fileNames = { invoice: 'invoice', receipt: 'receipt', quotation: 'quotation', rent: 'rent-receipt', delivery: 'delivery-note' };
+const labels = { invoice: 'Invoice', receipt: 'Receipt', quotation: 'Quotation', rent: 'Rent Receipt', delivery: 'Delivery Note', purchase: 'Purchase Order', estimate: 'Estimate' };
+const fileNames = { invoice: 'invoice', receipt: 'receipt', quotation: 'quotation', rent: 'rent-receipt', delivery: 'delivery-note', purchase: 'purchase-order', estimate: 'estimate' };
 const pdfLibs = [
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
@@ -81,8 +81,10 @@ function renderDoc(){
   let extra = '';
   if(type === 'rent') extra = `<div class="docbox"><b>Property</b>${safe(val('property','Property address'))}<br><b>Rental period</b>${safe(val('period','June 2026'))}</div>`;
   if(type === 'delivery') extra = `<div class="docbox"><b>Delivery details</b>${safe(val('property','Delivery address'))}<br><b>Delivery date</b>${safe(val('due',today()))}</div>`;
+  if(type === 'purchase') extra = `<div class="docbox"><b>Supplier / delivery</b>${safe(val('property','Supplier or delivery details'))}<br><b>Required by</b>${safe(val('due',today()))}</div>`;
+  if(type === 'estimate') extra = `<div class="docbox"><b>Project details</b>${safe(val('property','Project scope or location'))}<br><b>Valid until</b>${safe(val('due',today()))}</div>`;
   const rows = items.map(i => `<tr><td>${safe(i.desc)}</td><td>${i.qty}</td><td>${money(i.rate,cur)}</td><td>${i.tax}%</td><td>${money(i.total,cur)}</td></tr>`).join('');
-  const label = type === 'quotation' ? 'Quoted total' : (type === 'receipt' || type === 'rent' ? 'Amount paid' : 'Amount due');
+  const label = type === 'quotation' ? 'Quoted total' : (type === 'estimate' ? 'Estimated total' : (type === 'purchase' ? 'Order total' : (type === 'receipt' || type === 'rent' ? 'Amount paid' : 'Amount due')));
   const signature = val('signature','Authorized Signature');
   const preview = $('preview');
   if(!preview) return;
@@ -107,7 +109,7 @@ function bindTool(type){
   document.querySelectorAll('input,textarea,select').forEach(e => e.addEventListener('input', renderDoc));
   if($('date') && !$('date').value) $('date').value = today();
   if($('due') && !$('due').value) $('due').value = today();
-  if($('items') && !document.querySelector('.itemrow')) addItem(type==='delivery'?'Delivered goods':'Professional service',1,100,0);
+  if($('items') && !document.querySelector('.itemrow')) addItem(type==='delivery'?'Delivered goods':(type==='purchase'?'Business supplies':(type==='estimate'?'Estimated service':'Professional service')),1,100,0);
   renderDoc();
 }
 
