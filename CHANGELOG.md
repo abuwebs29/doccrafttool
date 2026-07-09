@@ -24,3 +24,13 @@
 - Extended shared document JavaScript engine for new document types.
 - Updated Documents and Tools pages with new live tools.
 - Added Sprint 3 release notes and QA checklist.
+
+
+## Sprint 4 — Project Atlas
+
+- Added professional mega navigation.
+- Added command search modal with search index.
+- Added public roadmap and changelog pages.
+- Added solution workspace pages.
+- Refined homepage positioning around business workspace workflows.
+- Updated footer and global navigation across the project.
