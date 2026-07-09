@@ -69,3 +69,12 @@
 - Added stronger focus states and reduced-motion support.
 - Expanded global search index with document and finance tools.
 - Improved mobile toolbar and polished workspace UI details.
+
+
+## v2.0 Sprint 8 — Project Polaris
+- Added HR Workspace.
+- Added Offer Letter, Payslip, Experience Letter, Salary Certificate and Leave Request generators.
+- Added role-based workspace recommendations using local browser storage.
+- Added favorites system for quick access to frequently used tools.
+- Expanded command search with HR tools.
+- Added Sprint 8 QA checklist and release notes.

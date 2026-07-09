@@ -1,4 +1,4 @@
-const DOC_CRAFT_SEARCH=[
+window.DOC_CRAFT_SEARCH=[
 {title:'Invoice Generator',url:'/invoice-generator/',type:'Tool',desc:'Create professional invoices with items, totals and payment terms.'},
 {title:'Receipt Generator',url:'/receipt-generator/',type:'Tool',desc:'Generate payment receipts for clients and customers.'},
 {title:'Quotation Generator',url:'/quotation-generator/',type:'Tool',desc:'Prepare quotations before work starts.'},
@@ -14,6 +14,12 @@ const DOC_CRAFT_SEARCH=[
 {title:'ROI Calculator',url:'/roi-calculator/',type:'Calculator',desc:'Measure return on investment.'},
 {title:'Discount Calculator',url:'/discount-calculator/',type:'Calculator',desc:'Calculate discounts, savings and final prices.'},
 {title:'Break-even Calculator',url:'/break-even-calculator/',type:'Calculator',desc:'Estimate units or sales needed to break even.'},
+{title:'Payslip Generator',url:'/payslip-generator/',type:'HR Tool',desc:'Create a simple printable payslip for employees.'},
+{title:'Offer Letter Generator',url:'/offer-letter-generator/',type:'HR Tool',desc:'Prepare a professional employment offer letter.'},
+{title:'Experience Letter Generator',url:'/experience-letter-generator/',type:'HR Tool',desc:'Create an employee experience certificate.'},
+{title:'Salary Certificate Generator',url:'/salary-certificate-generator/',type:'HR Tool',desc:'Generate a salary certificate for official use.'},
+{title:'Leave Request Letter Generator',url:'/leave-request-letter-generator/',type:'HR Tool',desc:'Draft a professional leave request letter.'},
+
 {title:'Business Workspace',url:'/workspace/',type:'Workspace',desc:'Quick actions, recommended tools and business workflows.'},
 {title:'Roadmap',url:'/roadmap/',type:'Resource',desc:'See what is shipped, in progress and planned.'},
 {title:'Changelog',url:'/changelog/',type:'Resource',desc:'Read product release notes.'},
@@ -26,7 +32,7 @@ document.addEventListener('DOMContentLoaded',()=>{
  document.querySelectorAll('.navlinks a').forEach(a=>{if(a.pathname===location.pathname)a.setAttribute('aria-current','page');});
  document.querySelectorAll('.nav-drop').forEach(drop=>{drop.addEventListener('click',()=>{const panel=drop.nextElementSibling;const open=panel&&panel.classList.toggle('is-open');drop.setAttribute('aria-expanded',String(!!open));});});
  const modal=document.getElementById('searchModal'),input=document.getElementById('globalSearch'),results=document.getElementById('searchResults');
- const render=(query='')=>{if(!results)return;const q=query.toLowerCase().trim();const matches=DOC_CRAFT_SEARCH.filter(i=>!q||(`${i.title} ${i.type} ${i.desc}`).toLowerCase().includes(q)).slice(0,8);results.innerHTML=matches.map(i=>`<a class="search-result" href="${i.url}"><b>${i.title}</b><small>${i.type} · ${i.desc}</small></a>`).join('')||'<div class="empty-state">No matching tools yet. Try invoice, receipt, estimate or freelancer.</div>';};
+ const render=(query='')=>{if(!results)return;const q=query.toLowerCase().trim();const matches=window.DOC_CRAFT_SEARCH.filter(i=>!q||(`${i.title} ${i.type} ${i.desc}`).toLowerCase().includes(q)).slice(0,8);results.innerHTML=matches.map(i=>`<a class="search-result" href="${i.url}"><b>${i.title}</b><small>${i.type} · ${i.desc}</small></a>`).join('')||'<div class="empty-state">No matching tools yet. Try invoice, receipt, estimate or freelancer.</div>';};
  const openSearch=()=>{if(!modal)return;modal.classList.add('is-open');modal.setAttribute('aria-hidden','false');render('');setTimeout(()=>input&&input.focus(),20);};
  const closeSearch=()=>{if(!modal)return;modal.classList.remove('is-open');modal.setAttribute('aria-hidden','true');};
  document.querySelectorAll('[data-open-search]').forEach(b=>b.addEventListener('click',openSearch));
