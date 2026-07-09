@@ -106,3 +106,14 @@
 - Added beta feedback export workflow for converting user notes into GitHub issues.
 - Expanded global search with Feedback Center and Launch Checklist.
 - Added Sprint 10 release notes and QA checklist.
+
+
+## v3.0 RC1 — Project Aurora
+
+- Updated homepage positioning from beta foundation to release-candidate quality.
+- Added Project Aurora quality section focused on trust, templates, workspace memory and beta readiness.
+- Added `/templates/` with business template packs for freelancers, agencies, retailers, landlords, consultants and HR.
+- Added local recent-tools memory on the Workspace page.
+- Added Aurora enhancement script for search shortcut hints and workspace polish.
+- Expanded global search to include Business Templates.
+- Added RC1 release documentation and QA checklist.

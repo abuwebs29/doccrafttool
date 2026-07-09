@@ -32,6 +32,7 @@ window.DOC_CRAFT_SEARCH=[
 {title:'Beta Readiness',url:'/beta/',type:'Resource',desc:'Review the launch checklist and quality standards.'},
 {title:'Feedback Center',url:'/feedback/',type:'Beta',desc:'Send product feedback and test notes.'},
 {title:'Launch Checklist',url:'/launch-checklist/',type:'Resource',desc:'Review DocCraftTools v2.0 launch readiness.'},
+{title:'Business Templates',url:'/templates/',type:'Template',desc:'Starter workflows for freelancers, agencies, retailers, landlords and HR.'},
 {title:'Freelancer Workspace',url:'/solutions/freelancers/',type:'Solution',desc:'Recommended tools for freelancers.'},
 {title:'Small Business Workspace',url:'/solutions/small-business/',type:'Solution',desc:'Recommended tools for small businesses.'}
 ];
