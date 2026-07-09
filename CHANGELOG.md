@@ -59,3 +59,13 @@
 ### QA notes
 - Verify every document page loads, renders line items and exports PDF/Word/Excel.
 - Test template switching, duplicate, reset/new document, print and mobile layout.
+
+## v2.0 Sprint 7 — Project Titan
+
+- Added document draft autosave and restore.
+- Added recent tools tracking for the Workspace page.
+- Added toast notifications for key workspace actions.
+- Added inline form hints and required-field validation.
+- Added stronger focus states and reduced-motion support.
+- Expanded global search index with document and finance tools.
+- Improved mobile toolbar and polished workspace UI details.
