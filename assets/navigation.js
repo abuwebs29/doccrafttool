@@ -20,9 +20,18 @@ window.DOC_CRAFT_SEARCH=[
 {title:'Salary Certificate Generator',url:'/salary-certificate-generator/',type:'HR Tool',desc:'Generate a salary certificate for official use.'},
 {title:'Leave Request Letter Generator',url:'/leave-request-letter-generator/',type:'HR Tool',desc:'Draft a professional leave request letter.'},
 
+{title:'Learning Center',url:'/learning-center/',type:'Resource',desc:'Business document guides and practical workflows.'},
+{title:'Trust Center',url:'/trust-center/',type:'Resource',desc:'Privacy, quality and product trust standards.'},
+{title:'How to Create an Invoice',url:'/learning-center/invoice-guide/',type:'Guide',desc:'Invoice fields, numbering, payment terms and mistakes.'},
+{title:'Invoice vs Receipt',url:'/learning-center/receipt-guide/',type:'Guide',desc:'Know when to send an invoice and when to issue a receipt.'},
+{title:'Quotation Best Practices',url:'/learning-center/quotation-guide/',type:'Guide',desc:'Scope, validity, pricing and client approval tips.'},
+{title:'Purchase Order Basics',url:'/learning-center/purchase-order-guide/',type:'Guide',desc:'Supplier order records and delivery workflow.'},
 {title:'Business Workspace',url:'/workspace/',type:'Workspace',desc:'Quick actions, recommended tools and business workflows.'},
 {title:'Roadmap',url:'/roadmap/',type:'Resource',desc:'See what is shipped, in progress and planned.'},
 {title:'Changelog',url:'/changelog/',type:'Resource',desc:'Read product release notes.'},
+{title:'Beta Readiness',url:'/beta/',type:'Resource',desc:'Review the launch checklist and quality standards.'},
+{title:'Feedback Center',url:'/feedback/',type:'Beta',desc:'Send product feedback and test notes.'},
+{title:'Launch Checklist',url:'/launch-checklist/',type:'Resource',desc:'Review DocCraftTools v2.0 launch readiness.'},
 {title:'Freelancer Workspace',url:'/solutions/freelancers/',type:'Solution',desc:'Recommended tools for freelancers.'},
 {title:'Small Business Workspace',url:'/solutions/small-business/',type:'Solution',desc:'Recommended tools for small businesses.'}
 ];

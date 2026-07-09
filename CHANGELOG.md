@@ -1,3 +1,13 @@
+
+## v3.0 Sprint 11 — Project Everest
+
+- Added Learning Center hub.
+- Added invoice, receipt, quotation and purchase order guides.
+- Added Trust Center with privacy, quality and product standards messaging.
+- Added Project Everest homepage section.
+- Expanded global search to include guides and trust resources.
+- Added Sprint 11 release notes and QA checklist.
+
 # Changelog
 
 ## Sprint 6 — Finance Workspace
@@ -78,3 +88,21 @@
 - Added favorites system for quick access to frequently used tools.
 - Expanded command search with HR tools.
 - Added Sprint 8 QA checklist and release notes.
+
+## Sprint 9 — Project Northstar
+
+- Added beta readiness and quality-hardening layer.
+- Added `/beta/` page with launch targets and QA standards.
+- Improved global search keyboard support.
+- Added task-time tracking hooks for document completion.
+- Added performance hygiene: lazy image loading and safe external links.
+- Added Sprint 9 release notes and QA checklist.
+
+## Sprint 10 — Project Launchpad
+
+- Added `/feedback/` Feedback Center for beta testing notes.
+- Added `/launch-checklist/` launch readiness checklist with local progress saving.
+- Added floating feedback widget across the product.
+- Added beta feedback export workflow for converting user notes into GitHub issues.
+- Expanded global search with Feedback Center and Launch Checklist.
+- Added Sprint 10 release notes and QA checklist.
