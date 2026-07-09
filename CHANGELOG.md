@@ -1,5 +1,10 @@
 # Changelog
 
+## Sprint 6 — Finance Workspace
+- Added Finance Workspace hub and five business calculators.
+- Added shared calculator engine and result components.
+- Connected finance tools with the document workflow.
+
 ## v2.0 Alpha
 - Rebuilt homepage as a professional SaaS-style business toolkit.
 - Added reusable visual design system in `/assets/style.css`.
