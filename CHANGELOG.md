@@ -34,3 +34,23 @@
 - Added solution workspace pages.
 - Refined homepage positioning around business workspace workflows.
 - Updated footer and global navigation across the project.
+
+
+## v2.0 Sprint 5 - Phoenix Document Workspace
+
+### Added
+- Universal Document Workspace layout for all document generators.
+- New Proforma Invoice, Credit Note and Debit Note generators.
+- Template selector with Modern, Minimal and Corporate document styles.
+- Workspace sidebar with templates, next steps and business guidance.
+- Sticky export toolbar with New, Duplicate, Print and Download PDF actions.
+- Updated Documents page to position the document suite as the core DocCraftTools workspace.
+
+### Improved
+- Shared document engine now supports 10 document types.
+- Better live preview experience and status messages.
+- More consistent form, toolbar, preview and mobile layout styling.
+
+### QA notes
+- Verify every document page loads, renders line items and exports PDF/Word/Excel.
+- Test template switching, duplicate, reset/new document, print and mobile layout.

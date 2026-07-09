@@ -1,6 +1,6 @@
 const $ = id => document.getElementById(id);
-const labels = { invoice: 'Invoice', receipt: 'Receipt', quotation: 'Quotation', rent: 'Rent Receipt', delivery: 'Delivery Note', purchase: 'Purchase Order', estimate: 'Estimate' };
-const fileNames = { invoice: 'invoice', receipt: 'receipt', quotation: 'quotation', rent: 'rent-receipt', delivery: 'delivery-note', purchase: 'purchase-order', estimate: 'estimate' };
+const labels = { invoice: 'Invoice', receipt: 'Receipt', quotation: 'Quotation', rent: 'Rent Receipt', delivery: 'Delivery Note', purchase: 'Purchase Order', estimate: 'Estimate', proforma: 'Proforma Invoice', credit: 'Credit Note', debit: 'Debit Note' };
+const fileNames = { invoice: 'invoice', receipt: 'receipt', quotation: 'quotation', rent: 'rent-receipt', delivery: 'delivery-note', purchase: 'purchase-order', estimate: 'estimate', proforma: 'proforma-invoice', credit: 'credit-note', debit: 'debit-note' };
 const pdfLibs = [
   'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
   'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
@@ -83,8 +83,12 @@ function renderDoc(){
   if(type === 'delivery') extra = `<div class="docbox"><b>Delivery details</b>${safe(val('property','Delivery address'))}<br><b>Delivery date</b>${safe(val('due',today()))}</div>`;
   if(type === 'purchase') extra = `<div class="docbox"><b>Supplier / delivery</b>${safe(val('property','Supplier or delivery details'))}<br><b>Required by</b>${safe(val('due',today()))}</div>`;
   if(type === 'estimate') extra = `<div class="docbox"><b>Project details</b>${safe(val('property','Project scope or location'))}<br><b>Valid until</b>${safe(val('due',today()))}</div>`;
+  if(type === 'proforma') extra = `<div class="docbox"><b>Proforma details</b>${safe(val('property','Reference or shipment details'))}<br><b>Valid until</b>${safe(val('due',today()))}</div>`;
+  if(type === 'credit') extra = `<div class="docbox"><b>Credit note reference</b>${safe(val('property','Original invoice or return reference'))}<br><b>Issue date</b>${safe(val('date',today()))}</div>`;
+  if(type === 'debit') extra = `<div class="docbox"><b>Debit note reference</b>${safe(val('property','Original invoice or additional charge reference'))}<br><b>Issue date</b>${safe(val('date',today()))}</div>`;
   const rows = items.map(i => `<tr><td>${safe(i.desc)}</td><td>${i.qty}</td><td>${money(i.rate,cur)}</td><td>${i.tax}%</td><td>${money(i.total,cur)}</td></tr>`).join('');
-  const label = type === 'quotation' ? 'Quoted total' : (type === 'estimate' ? 'Estimated total' : (type === 'purchase' ? 'Order total' : (type === 'receipt' || type === 'rent' ? 'Amount paid' : 'Amount due')));
+  const totalLabels = { quotation: 'Quoted total', estimate: 'Estimated total', purchase: 'Order total', proforma: 'Proforma total', credit: 'Credit amount', debit: 'Debit amount', receipt: 'Amount paid', rent: 'Amount paid' };
+  const label = totalLabels[type] || 'Amount due';
   const signature = val('signature','Authorized Signature');
   const preview = $('preview');
   if(!preview) return;
@@ -123,11 +127,18 @@ function bindActions(){
     if(action === 'download-word') button.addEventListener('click', downloadWord);
     if(action === 'download-excel') button.addEventListener('click', downloadExcel);
     if(action === 'print') button.addEventListener('click', printDocument);
+    if(action === 'new-doc') button.addEventListener('click', newDocument);
+    if(action === 'duplicate-doc') button.addEventListener('click', duplicateDocument);
   });
 }
 
+function setStatus(message){ const box = $('docStatus'); if(box) box.innerHTML = `<div class="success-state">${message}</div>`; }
+function newDocument(){ document.querySelectorAll('input,textarea').forEach(el => { if(el.type !== 'date') el.value = ''; }); if($('number')) $('number').value = String(Date.now()).slice(-6); if($('date')) $('date').value = today(); if($('due')) $('due').value = today(); if($('items')) $('items').innerHTML = ''; addItem('Professional service',1,100,0); setStatus('✅ New document ready. Add your details and review the live preview.'); renderDoc(); }
+function duplicateDocument(){ if($('number')) $('number').value = `${val('number','001')}-copy`; setStatus('✅ Document duplicated. Update the number before sending.'); renderDoc(); }
+function bindTemplates(){ document.querySelectorAll('[data-template]').forEach(btn => { if(btn.dataset.boundTemplate) return; btn.dataset.boundTemplate='true'; btn.addEventListener('click', () => { document.querySelectorAll('[data-template]').forEach(b=>b.classList.remove('is-active')); btn.classList.add('is-active'); const preview = $('preview'); if(preview){ preview.classList.remove('template-modern','template-minimal','template-corporate'); preview.classList.add(`template-${btn.dataset.template}`); } setStatus(`✅ ${btn.textContent.trim()} template applied.`); }); }); }
 function initTool(){
   bindActions();
+  bindTemplates();
   const type = document.body.dataset.tool;
   if(type) bindTool(type);
 }
@@ -212,6 +223,7 @@ async function downloadPDF(){
       remaining -= usableH;
     }
     pdf.save(docFileName('pdf'));
+    setStatus('✅ PDF downloaded. Need the next step? Create a receipt, quotation or purchase order from the sidebar.');
   }catch(e){
     alert('PDF download failed. Please use Print / Save as PDF.');
     console.error(e);
