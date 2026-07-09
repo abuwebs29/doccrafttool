@@ -1,5 +1,0 @@
-.dc-muted { color: var(--dc-slate-500); }
-.dc-kicker { color: var(--dc-primary); font-weight: 850; text-transform: uppercase; letter-spacing: .12em; font-size: 13px; }
-.dc-mt-1 { margin-top: 8px; } .dc-mt-2 { margin-top: 16px; } .dc-mt-3 { margin-top: 24px; } .dc-mt-4 { margin-top: 40px; }
-.dc-hidden-mobile { display: initial; }
-@media (max-width: 700px) { .dc-hidden-mobile { display: none; } }
