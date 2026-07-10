@@ -2,8 +2,8 @@ const $ = id => document.getElementById(id);
 const labels = { invoice: 'Invoice', receipt: 'Receipt', quotation: 'Quotation', rent: 'Rent Receipt', delivery: 'Delivery Note', purchase: 'Purchase Order', estimate: 'Estimate', proforma: 'Proforma Invoice', credit: 'Credit Note', debit: 'Debit Note' };
 const fileNames = { invoice: 'invoice', receipt: 'receipt', quotation: 'quotation', rent: 'rent-receipt', delivery: 'delivery-note', purchase: 'purchase-order', estimate: 'estimate', proforma: 'proforma-invoice', credit: 'credit-note', debit: 'debit-note' };
 const pdfLibs = [
-  'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js',
-  'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js'
+  ['/assets/vendor/html2canvas.min.js','https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js'],
+  ['/assets/vendor/jspdf.umd.min.js','https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js']
 ];
 
 function today(){ return new Date().toISOString().slice(0,10); }
@@ -31,7 +31,13 @@ function loadScript(src){
 }
 async function loadPdfLibs(){
   if(window.html2canvas && window.jspdf) return;
-  await pdfLibs.reduce((p, src) => p.then(() => loadScript(src)), Promise.resolve());
+  for(const sources of pdfLibs){
+    let loaded=false;
+    for(const src of sources){
+      try{ await loadScript(src); loaded=true; break; }catch(error){ console.warn(error.message); }
+    }
+    if(!loaded) throw new Error('PDF export libraries are unavailable.');
+  }
 }
 
 function addItem(desc='Professional service', qty=1, rate=100, tax=0){

@@ -1,3 +1,20 @@
+# DocCraftTools v3.0 RC3 — Production Readiness
+
+## Added
+- 20 functional business starter templates linked directly to matching document workspaces.
+- Template prefill engine using URL parameters and editable example data.
+- Filterable template library for invoices, quotations, purchase orders and receipts.
+- Search results for all starter templates, with keyboard arrow navigation and Enter selection.
+- Root-level production 404 page.
+
+## Improved
+- PDF export now tries a local library path before the CDN and always retains Print / Save as PDF as a fallback.
+- Search now displays up to 12 results and provides clearer no-result guidance.
+- Template and search layouts now adapt cleanly to phones and tablets.
+
+## Quality
+- Static QA script verifies HTML metadata, internal links, tool engines, template routes and duplicate IDs.
+
 # Changelog
 
 ## v3.0 RC1 Quality Pass

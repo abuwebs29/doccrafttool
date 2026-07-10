@@ -33,6 +33,26 @@ window.DOC_CRAFT_SEARCH=[
 {title:'Feedback Center',url:'/feedback/',type:'Beta',desc:'Send product feedback and test notes.'},
 {title:'Launch Checklist',url:'/launch-checklist/',type:'Resource',desc:'Review DocCraftTools v2.0 launch readiness.'},
 {title:'Business Templates',url:'/templates/',type:'Template',desc:'Starter workflows for freelancers, agencies, retailers, landlords and HR.'},
+{title:"Freelancer Invoice",url:"/invoice-generator/?template=freelancer-invoice",type:'Template',desc:"Milestones, payment terms and a clear professional-service line item."},
+{title:"IT Consultant Invoice",url:"/invoice-generator/?template=it-consultant-invoice",type:'Template',desc:"Consulting hours, implementation work and support terms."},
+{title:"Marketing Agency Invoice",url:"/invoice-generator/?template=marketing-agency-invoice",type:'Template',desc:"Campaign management, creative production and monthly billing."},
+{title:"Web Design Invoice",url:"/invoice-generator/?template=web-design-invoice",type:'Template',desc:"Project pricing with deposit and delivery wording."},
+{title:"Standard Business Invoice",url:"/invoice-generator/?template=standard-invoice",type:'Template',desc:"A clean general-purpose invoice for everyday business use."},
+{title:"Consulting Quotation",url:"/quotation-generator/?template=consulting-quotation",type:'Template',desc:"Discovery, advisory hours, validity and scope-change wording."},
+{title:"Construction Quotation",url:"/quotation-generator/?template=construction-quotation",type:'Template',desc:"Labour, materials and site preparation starter lines."},
+{title:"Photography Quotation",url:"/quotation-generator/?template=photography-quotation",type:'Template',desc:"Event coverage, extra hours and booking deposit terms."},
+{title:"Software Project Estimate",url:"/estimate-generator/?template=software-estimate",type:'Template',desc:"Planning, development, testing and deployment estimates."},
+{title:"Renovation Estimate",url:"/estimate-generator/?template=renovation-estimate",type:'Template',desc:"Preparation, labour, materials and exclusions."},
+{title:"Office Supplies PO",url:"/purchase-order-generator/?template=office-purchase-order",type:'Template',desc:"Paper, toner and office stationery starter items."},
+{title:"Restaurant Purchase Order",url:"/purchase-order-generator/?template=restaurant-purchase-order",type:'Template',desc:"Fresh produce, dry goods and delivery instructions."},
+{title:"Retail Stock Purchase Order",url:"/purchase-order-generator/?template=retail-purchase-order",type:'Template',desc:"Inventory batches, approved SKUs and packaging notes."},
+{title:"Retail Payment Receipt",url:"/receipt-generator/?template=retail-receipt",type:'Template',desc:"A simple receipt for products paid in full."},
+{title:"Service Payment Receipt",url:"/receipt-generator/?template=service-receipt",type:'Template',desc:"Confirm payment received for a professional service."},
+{title:"Monthly Rent Receipt",url:"/rent-receipt-generator/?template=landlord-rent-receipt",type:'Template',desc:"Tenant, property, rental period and payment confirmation."},
+{title:"Goods Delivery Note",url:"/delivery-note-generator/?template=goods-delivery-note",type:'Template',desc:"Delivered quantities, address and shortage-reporting note."},
+{title:"Export Proforma Invoice",url:"/proforma-invoice-generator/?template=export-proforma",type:'Template',desc:"Goods, freight, shipment reference and advance payment."},
+{title:"Returned Goods Credit Note",url:"/credit-note-generator/?template=return-credit-note",type:'Template',desc:"Reference an original invoice and accepted returned products."},
+{title:"Underbilling Debit Note",url:"/debit-note-generator/?template=underbilling-debit-note",type:'Template',desc:"Add a previously omitted charge with an invoice reference."},
 {title:'Freelancer Workspace',url:'/solutions/freelancers/',type:'Solution',desc:'Recommended tools for freelancers.'},
 {title:'Small Business Workspace',url:'/solutions/small-business/',type:'Solution',desc:'Recommended tools for small businesses.'}
 ];
@@ -42,11 +62,11 @@ document.addEventListener('DOMContentLoaded',()=>{
  document.querySelectorAll('.navlinks a').forEach(a=>{if(a.pathname===location.pathname)a.setAttribute('aria-current','page');});
  document.querySelectorAll('.nav-drop').forEach(drop=>{drop.addEventListener('click',()=>{const panel=drop.nextElementSibling;const open=panel&&panel.classList.toggle('is-open');drop.setAttribute('aria-expanded',String(!!open));});});
  const modal=document.getElementById('searchModal'),input=document.getElementById('globalSearch'),results=document.getElementById('searchResults');
- const render=(query='')=>{if(!results)return;const q=query.toLowerCase().trim();const matches=window.DOC_CRAFT_SEARCH.filter(i=>!q||(`${i.title} ${i.type} ${i.desc}`).toLowerCase().includes(q)).slice(0,8);results.innerHTML=matches.map(i=>`<a class="search-result" href="${i.url}"><b>${i.title}</b><small>${i.type} · ${i.desc}</small></a>`).join('')||'<div class="empty-state">No matching tools yet. Try invoice, receipt, estimate or freelancer.</div>';};
+ let activeIndex=-1; const resultLinks=()=>results?[...results.querySelectorAll('.search-result')]:[]; const setActive=(index)=>{const links=resultLinks();if(!links.length)return;activeIndex=(index+links.length)%links.length;links.forEach((a,i)=>{a.classList.toggle('is-active',i===activeIndex);a.setAttribute('aria-selected',String(i===activeIndex));});links[activeIndex].scrollIntoView({block:'nearest'});}; const render=(query='')=>{if(!results)return;const q=query.toLowerCase().trim();const matches=window.DOC_CRAFT_SEARCH.filter(i=>!q||(`${i.title} ${i.type} ${i.desc}`).toLowerCase().includes(q)).slice(0,12);activeIndex=-1;results.innerHTML=matches.map(i=>`<a class="search-result" role="option" href="${i.url}"><b>${i.title}</b><small>${i.type} · ${i.desc}</small></a>`).join('')||'<div class="empty-state">No match found. Try invoice, quotation, VAT, template or freelancer.</div>';};
  const openSearch=()=>{if(!modal)return;modal.classList.add('is-open');modal.setAttribute('aria-hidden','false');render('');setTimeout(()=>input&&input.focus(),20);};
  const closeSearch=()=>{if(!modal)return;modal.classList.remove('is-open');modal.setAttribute('aria-hidden','true');};
  document.querySelectorAll('[data-open-search]').forEach(b=>b.addEventListener('click',openSearch));
  document.querySelectorAll('[data-close-search]').forEach(b=>b.addEventListener('click',closeSearch));
- input&&input.addEventListener('input',()=>render(input.value));
+ input&&input.addEventListener('input',()=>render(input.value)); input&&input.addEventListener('keydown',e=>{if(e.key==='ArrowDown'){e.preventDefault();setActive(activeIndex+1);}if(e.key==='ArrowUp'){e.preventDefault();setActive(activeIndex-1);}if(e.key==='Enter'&&activeIndex>=0){e.preventDefault();resultLinks()[activeIndex]?.click();}});
  document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearch();}if(e.key==='Escape')closeSearch();});
 });
