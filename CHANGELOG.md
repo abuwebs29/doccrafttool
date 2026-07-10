@@ -1,3 +1,13 @@
+# Changelog
+
+## v3.0 RC1 Quality Pass
+
+- Ran internal link validation across the static site.
+- Verified core SEO tags, H1 tags, language attributes and duplicate IDs.
+- Replaced public-facing sprint/project labels with product-focused copy.
+- Added `docs/RC1_QUALITY_PASS.md` with QA results and beta testing tasks.
+- Prepared the build for real beta review before adding more features.
+
 
 ## v3.0 Sprint 11 — Project Everest
 
@@ -117,3 +127,14 @@
 - Added Aurora enhancement script for search shortcut hints and workspace polish.
 - Expanded global search to include Business Templates.
 - Added RC1 release documentation and QA checklist.
+
+## v3.0 RC2 — Stabilization
+
+- Repaired and isolated all document, calculator and HR tool engines.
+- Added a runtime health check and clear recovery messages.
+- Unified the header, search, navigation and footer across every HTML page.
+- Migrated About, Contact, Blog, all blog articles, Privacy, Terms and Disclaimer to the v3 shell.
+- Removed conflicting enhancement scripts from functional tool pages.
+- Added mobile and legacy-content styling for consistent presentation.
+- Added a JavaScript-required notice and safer button defaults.
+- Improved PDF export fallback messaging.

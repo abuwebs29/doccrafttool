@@ -25,7 +25,7 @@ function loadScript(src){
     script.async = true;
     script.crossOrigin = 'anonymous';
     script.onload = () => { script.dataset.loaded = 'true'; resolve(); };
-    script.onerror = () => reject(new Error(`Could not load ${src}`));
+    script.onerror = () => reject(new Error(`Could not load ${src}. Check your internet connection or use Print / Save as PDF.`));
     document.head.appendChild(script);
   });
 }
@@ -187,6 +187,7 @@ function createExportNode(){
 }
 
 async function downloadPDF(){
+  if(!document.querySelector('.itemrow')) addItem('Professional service',1,100,0);
   const btns = document.querySelectorAll('button');
   btns.forEach(b=>b.disabled=true);
   let holder = null;
@@ -225,7 +226,8 @@ async function downloadPDF(){
     pdf.save(docFileName('pdf'));
     setStatus('✅ PDF downloaded. Need the next step? Create a receipt, quotation or purchase order from the sidebar.');
   }catch(e){
-    alert('PDF download failed. Please use Print / Save as PDF.');
+    setStatus('PDF library could not load. Use Print and choose Save as PDF.');
+    alert('PDF download could not start. Please use Print, then choose Save as PDF.');
     console.error(e);
   }finally{
     if(holder) holder.remove();
@@ -302,3 +304,5 @@ if(document.readyState === 'loading'){
 }else{
   initTool();
 }
+
+window.DocCraftDocument={addItem,renderDoc,getTotals,newDocument,duplicateDocument,downloadPDF,downloadWord,downloadExcel,printDocument};
