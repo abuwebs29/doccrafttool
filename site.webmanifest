@@ -1,17 +1,8 @@
 {
   "name": "DocCraftTools",
   "short_name": "DocCraftTools",
-  "description": "Free business document generators for invoices, receipts, quotations, rent receipts and delivery notes.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f6f8fb",
-  "theme_color": "#2563eb",
-  "icons": [
-    {
-      "src": "/assets/favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    }
-  ]
+  "background_color": "#f6f8fc",
+  "theme_color": "#2448d8"
 }
