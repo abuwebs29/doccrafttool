@@ -27,6 +27,20 @@ const escapeHtml=value=>String(value??'').replace(/[&<>'"]/g,char=>({
 }[char]));
 const slugify=value=>String(value??'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 
+$$('[data-breadcrumbs]').forEach(root=>{
+  const current=root.dataset.breadcrumbLabel||document.querySelector('h1')?.textContent?.trim()||document.title.split('|')[0].trim();
+  const parentLabel=root.dataset.breadcrumbParentLabel;
+  const parentUrl=root.dataset.breadcrumbParentUrl;
+  const crumbs=[{label:'Home',url:'/'}];
+  if(parentLabel&&parentUrl) crumbs.push({label:parentLabel,url:parentUrl});
+  crumbs.push({label:current});
+  root.setAttribute('aria-label','Breadcrumb');
+  root.innerHTML=crumbs.map((crumb,index)=>{
+    const isCurrent=index===crumbs.length-1;
+    return `${index?'<span aria-hidden="true">/</span> ':''}${isCurrent?`<span aria-current="page">${escapeHtml(crumb.label)}</span>`:`<a href="${escapeHtml(crumb.url)}">${escapeHtml(crumb.label)}</a>`}`;
+  }).join('');
+});
+
 const searchRoot=$('[data-document-search]');
 if(searchRoot){
   const input=$('input[type="search"]',searchRoot);
