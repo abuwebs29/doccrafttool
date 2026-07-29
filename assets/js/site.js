@@ -25,6 +25,7 @@ const registryPromise=fetch('/assets/data/documents.json',{cache:'no-cache'})
 const escapeHtml=value=>String(value??'').replace(/[&<>'"]/g,char=>({
   '&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'
 }[char]));
+const slugify=value=>String(value??'').toLowerCase().trim().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
 
 const searchRoot=$('[data-document-search]');
 if(searchRoot){
@@ -85,9 +86,7 @@ if(documentList){
     }
 
     const requestedCategory=documentList.dataset.category;
-    const filtered=requestedCategory
-      ? documents.filter(item=>item.category===requestedCategory)
-      : documents;
+    const filtered=requestedCategory?documents.filter(item=>item.category===requestedCategory):documents;
     const groups=filtered.reduce((map,item)=>{
       const category=item.category||'Other';
       if(!map.has(category)) map.set(category,[]);
@@ -96,15 +95,11 @@ if(documentList){
     },new Map());
 
     documentList.innerHTML=[...groups.entries()].map(([category,items])=>`
-      <section class="document-group" aria-labelledby="category-${escapeHtml(category.toLowerCase().replace(/[^a-z0-9]+/g,'-'))}">
-        <div class="section-heading"><div><span class="eyebrow">${escapeHtml(category)}</span><h2 id="category-${escapeHtml(category.toLowerCase().replace(/[^a-z0-9]+/g,'-'))}">${escapeHtml(category)} documents</h2></div><span>${items.length} ${items.length===1?'tool':'tools'}</span></div>
+      <section class="document-group" aria-labelledby="category-${slugify(category)}">
+        <div class="section-heading"><div><span class="eyebrow">${escapeHtml(category)}</span><h2 id="category-${slugify(category)}">${escapeHtml(category)} documents</h2></div><span>${items.length} ${items.length===1?'tool':'tools'}</span></div>
         <div class="grid two">
           ${items.sort((a,b)=>a.title.localeCompare(b.title)).map(item=>`
-            <article class="card tool-card">
-              <h3>${escapeHtml(item.title)}</h3>
-              <p>${escapeHtml(item.description)}</p>
-              <a href="${escapeHtml(item.url)}">Open tool →</a>
-            </article>`).join('')}
+            <article class="card tool-card"><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description)}</p><a href="${escapeHtml(item.url)}">Open tool →</a></article>`).join('')}
         </div>
       </section>`).join('');
   });
@@ -116,10 +111,34 @@ if(featuredList){
     const featured=documents.filter(item=>item.featured).slice(0,6);
     if(!featured.length) return;
     featuredList.innerHTML=featured.map(item=>`
-      <article class="card tool-card" data-search-item>
-        <h3>${escapeHtml(item.title)}</h3>
-        <p>${escapeHtml(item.description)}</p>
-        <a href="${escapeHtml(item.url)}">Open tool →</a>
-      </article>`).join('');
+      <article class="card tool-card" data-search-item><h3>${escapeHtml(item.title)}</h3><p>${escapeHtml(item.description)}</p><a href="${escapeHtml(item.url)}">Open tool →</a></article>`).join('');
+  });
+}
+
+const categoryDirectory=$('[data-category-directory]');
+if(categoryDirectory){
+  const categoryDescriptions={
+    'Business':'Documents for billing, sales, purchasing and commercial communication.',
+    'Human Resources':'Employment letters, workplace notices, certificates and employee records.',
+    'Finance':'Calculators and documents for taxes, payments and financial administration.'
+  };
+  registryPromise.then(documents=>{
+    if(!documents.length){
+      categoryDirectory.innerHTML='<p>Categories are temporarily unavailable. Please refresh the page.</p>';
+      return;
+    }
+    const groups=documents.reduce((map,item)=>{
+      const category=item.category||'Other';
+      if(!map.has(category)) map.set(category,[]);
+      map.get(category).push(item);
+      return map;
+    },new Map());
+    categoryDirectory.innerHTML=[...groups.entries()]
+      .sort(([a],[b])=>a.localeCompare(b))
+      .map(([category,items])=>`
+        <article class="directory-card" id="${slugify(category)}">
+          <div class="directory-head"><div><h2>${escapeHtml(category)} documents</h2><p>${escapeHtml(categoryDescriptions[category]||'Professional browser-based documents and utilities.')}</p></div><span class="status-badge">${items.length} available</span></div>
+          <div class="document-links">${items.sort((a,b)=>a.title.localeCompare(b.title)).map(item=>`<a href="${escapeHtml(item.url)}">${escapeHtml(item.shortTitle||item.title)}</a>`).join('')}</div>
+        </article>`).join('');
   });
 }
