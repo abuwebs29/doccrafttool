@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>CopyBlocks | Reusable Business Copy Library</title>
+  <meta name="description" content="Save, search, personalize and copy reusable business messages directly in your browser. No sign-up and no data uploads.">
+  <link rel="canonical" href="https://doccrafttools.com/copyblocks/">
+  <meta name="robots" content="index,follow,max-image-preview:large">
+  <link rel="stylesheet" href="/assets/css/main.css">
+  <link rel="stylesheet" href="/assets/css/copyblocks.css">
+</head>
+<body>
+  <a class="skip" href="#workspace">Skip to workspace</a>
+  <header class="site-header">
+    <div class="container nav">
+      <a class="brand" href="/">DocCraft<span>Studio</span></a>
+      <nav class="navlinks" aria-label="Primary">
+        <a href="/">Home</a>
+        <a href="/tools/">Document Tools</a>
+        <a href="/blog/">Guides</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="workspace" class="copyblocks-shell">
+    <section class="copyblocks-hero">
+      <div class="container">
+        <span class="eyebrow">CopyBlocks MVP</span>
+        <h1>Your reusable business message library.</h1>
+        <p>Search ready-to-use copy, personalize placeholders, save favorites and copy polished messages in one click. Everything stays in your browser.</p>
+      </div>
+    </section>
+
+    <section class="container copyblocks-app" aria-label="CopyBlocks workspace">
+      <aside class="copyblocks-sidebar">
+        <div class="sidebar-heading">
+          <strong>Library</strong>
+          <span id="blockCount">0 blocks</span>
+        </div>
+        <button class="filter-button is-active" data-category="all">All blocks</button>
+        <button class="filter-button" data-category="favorites">★ Favorites</button>
+        <button class="filter-button" data-category="sales">Sales</button>
+        <button class="filter-button" data-category="payments">Payments</button>
+        <button class="filter-button" data-category="support">Customer support</button>
+        <button class="filter-button" data-category="operations">Operations</button>
+        <button class="filter-button" data-category="hr">HR</button>
+        <div class="privacy-note">
+          <strong>Private by design</strong>
+          <p>Your favorites and variable values are stored only in this browser.</p>
+        </div>
+      </aside>
+
+      <div class="copyblocks-main">
+        <div class="copyblocks-toolbar">
+          <label class="search-box">
+            <span class="sr-only">Search blocks</span>
+            <input id="searchInput" type="search" placeholder="Search messages, use cases or keywords..." autocomplete="off">
+          </label>
+          <button id="clearSearch" class="secondary-action" type="button">Clear</button>
+        </div>
+
+        <div class="variables-panel">
+          <div>
+            <strong>Personalization variables</strong>
+            <p>Fill these once and every block updates instantly.</p>
+          </div>
+          <div class="variables-grid">
+            <label>Your name<input id="yourName" data-variable="yourName" placeholder="Abu Huraira"></label>
+            <label>Company<input id="companyName" data-variable="companyName" placeholder="DocCraftTools"></label>
+            <label>Client name<input id="clientName" data-variable="clientName" placeholder="Client name"></label>
+            <label>Invoice number<input id="invoiceNumber" data-variable="invoiceNumber" placeholder="INV-1042"></label>
+          </div>
+        </div>
+
+        <div id="emptyState" class="empty-state" hidden>
+          <h2>No matching blocks</h2>
+          <p>Try another keyword or choose a different category.</p>
+        </div>
+
+        <div id="blocksGrid" class="blocks-grid" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="copy-toast" role="status" aria-live="polite"></div>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="copyright">© <span data-year></span> DocCraftTools. CopyBlocks runs entirely in your browser.</div>
+    </div>
+  </footer>
+
+  <script src="/assets/js/site.js" defer></script>
+  <script src="/assets/js/copyblocks.js" defer></script>
+</body>
+</html>
