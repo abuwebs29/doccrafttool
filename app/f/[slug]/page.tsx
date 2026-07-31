@@ -18,7 +18,16 @@ export default function PublicFormPage() {
   if (status === "closed") return <StateCard title="This form is closed" message={form.closedMessage} />;
   if (submitted) return <div className="mx-auto max-w-2xl px-5 py-20"><div className="card p-10 text-center"><CheckCircle2 className="mx-auto text-emerald-600" size={48} /><h1 className="mt-5 text-2xl font-bold">Response submitted</h1><p className="mt-2 text-slate-600">Thank you. Your response has been recorded in this prototype.</p></div></div>;
 
-  function submit(e: FormEvent) { e.preventDefault(); if (getEffectiveFormStatus(form) !== "open") { location.reload(); return; } setSubmitted(true); }
+  const activeForm = form;
+
+  function submit(e: FormEvent) {
+    e.preventDefault();
+    if (getEffectiveFormStatus(activeForm) !== "open") {
+      window.location.reload();
+      return;
+    }
+    setSubmitted(true);
+  }
   return <main className="mx-auto max-w-2xl px-5 py-12"><div className="card overflow-hidden"><div className="h-3 bg-violet-600" /><div className="p-7"><h1 className="text-3xl font-bold">{form.title}</h1><p className="mt-3 text-slate-600">{form.description}</p></div></div><form className="mt-5 space-y-4" onSubmit={submit}>{form.questions.map((q) => <div className="card p-6" key={q.id}><label className="label text-base">{q.title}{q.required && <span className="ml-1 text-red-500">*</span>}</label>{q.type === "long_text" ? <textarea className="field" required={q.required} rows={5} /> : q.type === "multiple_choice" || q.type === "checkboxes" ? <div className="mt-3 space-y-2">{(q.options ?? []).map((option) => <label className="flex gap-2" key={option}><input required={q.required && q.type === "multiple_choice"} name={q.id} type={q.type === "multiple_choice" ? "radio" : "checkbox"} />{option}</label>)}</div> : q.type === "dropdown" ? <select className="field" required={q.required}><option value="">Select an option</option>{(q.options ?? []).map((option) => <option key={option}>{option}</option>)}</select> : <input className="field" required={q.required} type={q.type === "email" ? "email" : "text"} />}</div>)}<button className="btn-primary w-full" type="submit">Submit response</button></form></main>;
 }
 
