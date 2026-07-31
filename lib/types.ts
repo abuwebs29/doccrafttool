@@ -24,4 +24,6 @@ export type FormRecord = {
   questions: Question[];
   createdAt: string;
   updatedAt: string;
+  archived?: boolean;
+  responseCount?: number;
 };
