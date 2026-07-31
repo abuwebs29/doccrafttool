@@ -41,3 +41,7 @@ The dashboard now includes:
 - Delete undo notification
 - Empty and no-results states
 - Backward-compatible localStorage data migration for response counts and archived forms
+
+## Sprint 3 — Professional builder
+
+This package adds a redesigned form-building workspace with native drag-and-drop question ordering, autosave, undo/redo history, question duplication and editing, an add-question toolbar, responsive mobile preview, and a live desktop preview. Existing dashboard, scheduling, public links, and Cloudflare OpenNext configuration remain included.

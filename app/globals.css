@@ -11,3 +11,6 @@ input, textarea, select { @apply outline-none; }
 .field { @apply w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-sm focus:border-violet-500 focus:ring-2 focus:ring-violet-100; }
 .label { @apply mb-1.5 block text-sm font-medium text-slate-700; }
 .menu-item { @apply flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm font-medium text-slate-700 transition hover:bg-slate-50; }
+.builder-icon-button { @apply grid h-10 w-10 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-30; }
+.builder-tab { @apply relative flex h-14 items-center border-b-2 border-transparent px-4 text-sm font-semibold text-slate-500 transition hover:text-slate-900; }
+.builder-tab-active { @apply border-violet-600 text-violet-700; }
