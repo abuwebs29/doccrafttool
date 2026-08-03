@@ -1,7 +1,6 @@
 "use client";
 
 import AdminGuard from "@/components/AdminGuard";
-import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -26,7 +25,7 @@ import {
   Undo2,
   Users,
 } from "lucide-react";
-import { deleteForm, duplicateForm, listForms, setArchived } from "@/lib/demo-store";
+import { deleteForm, duplicateForm, hydrateForms, listForms, setArchived } from "@/lib/demo-store";
 import { getEffectiveFormStatus } from "@/lib/form-status";
 import type { FormRecord } from "@/lib/types";
 
@@ -58,6 +57,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     refresh();
+    void hydrateForms().then(setForms);
     const storedView = localStorage.getItem("formflow.dashboard.view");
     if (storedView === "grid" || storedView === "list") setView(storedView);
 
@@ -189,7 +189,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center gap-3">
                 <Link href="/forms/new" className="btn-primary hidden sm:inline-flex"><Plus size={17} className="mr-2" />New form</Link>
-                <button onClick={() => void supabase.auth.signOut()} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:text-slate-950">Sign out</button>
+                <button onClick={async () => { await fetch("/api/auth/logout", { method: "POST" }); window.location.href = "/login"; }} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:text-slate-950">Sign out</button>
               </div>
             </div>
           </header>

@@ -70,8 +70,12 @@ export default function PublicFormPage() {
     if (!validateSection()) return;
     if (getEffectiveFormStatus(activeForm) !== "open") { window.location.reload(); return; }
     const score = calculateScore(activeForm, answers);
-    await saveResponse({ id: crypto.randomUUID(), formId: activeForm.id, submittedAt: new Date().toISOString(), answers, ...score });
-    setSubmitted(true);
+    try {
+      await saveResponse({ id: crypto.randomUUID(), formId: activeForm.id, submittedAt: new Date().toISOString(), answers, ...score });
+      setSubmitted(true);
+    } catch (submissionError) {
+      setError(submissionError instanceof Error ? submissionError.message : "Unable to submit your response.");
+    }
   }
 
   return <main className="min-h-screen bg-[#f7f8fc] px-4 py-8 sm:py-12">

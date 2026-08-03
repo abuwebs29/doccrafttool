@@ -1,31 +1,49 @@
 import type { FormRecord, FormResponse } from "./types";
-import { supabase, supabaseConfigured } from "./supabase";
 
-export const remoteEnabled = supabaseConfigured;
+export const remoteEnabled = true;
 
 export async function syncFormRemote(form: FormRecord) {
-  if (!remoteEnabled) return;
-  const { error } = await supabase.from("forms").upsert({ id: form.id, slug: form.slug, status: form.status, data: form, updated_at: form.updatedAt });
-  if (error) throw error;
+  const response = await fetch("/api/forms/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+  if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error ?? "Unable to sync form.");
+}
+
+export async function listRemoteForms(): Promise<FormRecord[]> {
+  const response = await fetch("/api/forms/admin", { cache: "no-store" });
+  if (!response.ok) return [];
+  const payload = await response.json() as { forms?: FormRecord[] };
+  return payload.forms ?? [];
+}
+
+export async function getRemoteAdminForm(id: string): Promise<FormRecord | null> {
+  const response = await fetch(`/api/forms/${encodeURIComponent(id)}`, { cache: "no-store" });
+  if (!response.ok) return null;
+  const payload = await response.json() as { form?: FormRecord | null };
+  return payload.form ?? null;
+}
+
+export async function deleteRemoteForm(id: string) {
+  const response = await fetch(`/api/forms/${encodeURIComponent(id)}`, { method: "DELETE" });
+  if (!response.ok) throw new Error("Unable to delete form.");
 }
 
 export async function getRemoteForm(slug: string): Promise<FormRecord | null> {
-  if (!remoteEnabled) return null;
-  const { data, error } = await supabase.from("forms").select("data").eq("slug", slug).eq("status", "published").maybeSingle();
-  if (error) return null;
-  return (data?.data as FormRecord | undefined) ?? null;
+  try {
+    const response = await fetch(`/api/forms/public/${encodeURIComponent(slug)}`, { cache: "no-store" });
+    if (!response.ok) return null;
+    const data = await response.json() as { form?: FormRecord | null };
+    return data.form ?? null;
+  } catch { return null; }
 }
 
 export async function submitRemoteResponse(responseData: FormResponse) {
-  if (!remoteEnabled) return false;
-  const { error } = await supabase.from("form_responses").insert({ id: responseData.id, form_id: responseData.formId, submitted_at: responseData.submittedAt, answers: responseData.answers, total_score: responseData.totalScore, max_score: responseData.maxScore });
-  if (error) throw error;
+  const response = await fetch("/api/responses/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: responseData.id, formId: responseData.formId, answers: responseData.answers }) });
+  if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error ?? "Unable to submit response.");
   return true;
 }
 
 export async function listRemoteResponses(formId: string): Promise<FormResponse[]> {
-  if (!remoteEnabled) return [];
-  const { data, error } = await supabase.from("form_responses").select("id,form_id,submitted_at,answers,total_score,max_score").eq("form_id", formId).order("submitted_at", { ascending: false });
-  if (error || !data) return [];
-  return data.map((r) => ({ id: r.id, formId: r.form_id, submittedAt: r.submitted_at, answers: r.answers as FormResponse["answers"], totalScore: Number(r.total_score), maxScore: Number(r.max_score) }));
+  const response = await fetch(`/api/responses/${encodeURIComponent(formId)}`, { cache: "no-store" });
+  if (!response.ok) return [];
+  const payload = await response.json() as { responses?: Array<{ id:string; form_id:string; submitted_at:string; answers:FormResponse["answers"]; total_score:number; max_score:number }> };
+  return (payload.responses ?? []).map((item) => ({ id: item.id, formId: item.form_id, submittedAt: item.submitted_at, answers: item.answers, totalScore: Number(item.total_score), maxScore: Number(item.max_score) }));
 }

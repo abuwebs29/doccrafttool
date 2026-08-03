@@ -1,5 +1,5 @@
 import type { FormRecord } from "./types";
-import { syncFormRemote } from "./remote-store";
+import { deleteRemoteForm, listRemoteForms, syncFormRemote } from "./remote-store";
 
 const KEY = "formflow.forms.v1";
 
@@ -39,7 +39,7 @@ export function saveForm(form: FormRecord): void {
   void syncFormRemote(normalized).catch((error) => console.error("Form sync failed", error));
 }
 
-export function deleteForm(id: string): void { localStorage.setItem(KEY, JSON.stringify(listForms().filter((form) => form.id !== id))); }
+export function deleteForm(id: string): void { localStorage.setItem(KEY, JSON.stringify(listForms().filter((form) => form.id !== id))); void deleteRemoteForm(id).catch((error) => console.error("Remote form delete failed", error)); }
 
 export function duplicateForm(id: string): FormRecord | undefined {
   const source = getForm(id);
@@ -61,4 +61,10 @@ export function duplicateForm(id: string): FormRecord | undefined {
 export function setArchived(id: string, archived: boolean): void {
   const form = getForm(id); if (!form) return;
   saveForm({ ...form, archived, updatedAt: new Date().toISOString() });
+}
+
+export async function hydrateForms(): Promise<FormRecord[]> {
+  const remote = (await listRemoteForms()).map(normalizeForm);
+  if (remote.length) { localStorage.setItem(KEY, JSON.stringify(remote)); return remote; }
+  return listForms();
 }

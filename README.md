@@ -1,69 +1,69 @@
-# FormFlow MVP
+# FormFlow — Simple Admin Login
 
-An internal link-based form platform with scheduling, sections, scoring, response management, and Excel export.
+Internal form builder with a single administrator account, scheduled forms, sections, branching, optional numeric scoring, response storage, and Excel export. Respondents do not log in; they only receive a form link.
 
-## Included
-- Form dashboard
-- Form builder with six question types
-- Public shareable form page
-- Immediate, scheduled, and manual opening modes
-- Never, scheduled, and immediate closing modes
-- Custom timezone and messages
-- Submission-time availability re-check
-- Supabase production schema and secure submission function
+## Authentication
 
-## Run locally
+Supabase Authentication is no longer used. The admin email and password are stored as Cloudflare Secrets. A successful login creates a signed, HttpOnly session cookie valid for 12 hours. Dashboard and form-management routes are also protected by middleware.
+
+## Supabase setup
+
+1. Create a Supabase project.
+2. Open **SQL Editor** and run `supabase/schema.sql`.
+3. Open **Project Settings → API** and copy:
+   - Project URL
+   - `service_role` key
+
+The service-role key is server-only. Never expose it in a `NEXT_PUBLIC_` variable.
+
+## Cloudflare variables
+
+Open **Workers & Pages → your project → Settings → Variables and Secrets**. Add all five as **Secrets**, not JSON:
+
+```text
+SUPABASE_URL=https://YOUR_PROJECT.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+ADMIN_EMAIL=admin@yourdomain.com
+ADMIN_PASSWORD=your-strong-admin-password
+ADMIN_SESSION_SECRET=a-long-random-secret-at-least-32-characters
+```
+
+Generate the session secret locally with one of these commands:
+
+```bash
+openssl rand -base64 48
+```
+
+or
+
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('base64'))"
+```
+
+Save the values and redeploy. The admin login is `/login`. Participants use `/f/<form-slug>`.
+
+## Cloudflare deployment
+
+Use this deploy command:
+
+```bash
+bun run deploy
+```
+
+## Security model
+
+- Only the signed admin session can access `/dashboard` and `/forms/*`.
+- Admin form writes and response reads use protected server API routes.
+- Public form lookup and submission use limited server API routes.
+- Supabase tables have RLS enabled with no browser policies.
+- The service-role key is used only on the server.
+- Respondents cannot read responses or manage forms.
+
+## Local development
+
+Copy `.dev.vars.example` to `.dev.vars`, fill in the values, then run:
+
 ```bash
 npm install
 npm run dev
 ```
-Open http://localhost:3000. Local storage is used as a development fallback; configure Supabase for shared participant links and centralized responses.
-
-## Production database
-1. Create a Supabase project.
-2. Run `supabase/schema.sql` in the SQL editor.
-3. Copy `.env.example` to `.env.local` and add your keys.
-4. Replace `lib/demo-store.ts` calls with Supabase queries.
-
-The SQL function `submit_form_response` checks the server time during every submission, preventing users from bypassing opening or closing deadlines with an old browser tab or changed device clock.
-
-## Sprint 2 dashboard
-
-The dashboard now includes:
-
-- Responsive workspace sidebar and header
-- Form, response, open, scheduled, and closed statistics
-- Search with `/` keyboard shortcut
-- New form shortcut with `N`
-- Status filters and sorting
-- Grid and list layouts with saved preference
-- Copy public link, preview, edit, duplicate, archive/restore, and delete actions
-- Delete undo notification
-- Empty and no-results states
-- Backward-compatible localStorage data migration for response counts and archived forms
-
-## Sprint 3 — Professional builder
-
-This package adds a redesigned form-building workspace with native drag-and-drop question ordering, autosave, undo/redo history, question duplication and editing, an add-question toolbar, responsive mobile preview, and a live desktop preview. Existing dashboard, scheduling, public links, and Cloudflare OpenNext configuration remain included.
-
-## Sprint 5: shared internal links and scoring
-
-1. Create a free Supabase project.
-2. Run `supabase/schema.sql` in Supabase SQL Editor.
-3. Add `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` to Cloudflare environment variables.
-4. Redeploy, open a form, configure optional scores, then click Publish.
-5. Share only the generated `/f/<slug>` link with participants.
-
-The responses dashboard shows numeric total score and Pass/Fail. Excel export intentionally omits numeric score and includes only Result (Pass/Fail), as required.
-
-This is designed for internal link-only use and has no public form directory, account registration, or respondent login.
-
-## Admin-only setup
-1. Run `supabase/schema.sql` in Supabase SQL Editor.
-2. In Supabase Authentication > Users, create one user with the admin email and password.
-3. Add that user to the admin allow-list by running:
-   `insert into public.admin_users(user_id) select id from auth.users where email='YOUR_ADMIN_EMAIL';`
-4. Keep `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in Cloudflare as plain-text variables.
-5. Admin signs in at `/login`. Public respondents only receive `/f/<slug>` links.
-
-Pass/fail and the 60-point threshold have been removed. Optional numeric question scoring remains, and Excel exports include numeric total and maximum scores.
