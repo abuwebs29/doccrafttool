@@ -83,3 +83,9 @@ Expected response:
 ```json
 {"ok":true,"configured":true}
 ```
+
+## Sprint 6 upgrade
+
+Sprint 6 adds individual response pages, search/sort/date filters, pagination, bulk deletion, selected-response export, reference numbers, response limits, and duplicate-submission controls.
+
+When upgrading an existing database, run `supabase/migrate-sprint-6.sql` once in the Supabase SQL Editor before testing new submissions.

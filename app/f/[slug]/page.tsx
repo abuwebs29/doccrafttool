@@ -3,7 +3,7 @@ import { useParams } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { getForm } from "@/lib/demo-store";
 import { getRemoteForm } from "@/lib/remote-store";
-import { calculateScore, saveResponse } from "@/lib/response-store";
+import { calculateScore } from "@/lib/response-store";
 import { getEffectiveFormStatus } from "@/lib/form-status";
 import type { FormRecord, Question } from "@/lib/types";
 import { ArrowLeft, ArrowRight, CheckCircle2, Clock3 } from "lucide-react";
@@ -17,6 +17,7 @@ export default function PublicFormPage() {
   const [answers, setAnswers] = useState<Answers>({});
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [referenceNumber, setReferenceNumber] = useState("");
 
   useEffect(() => {
     let active = true;
@@ -33,7 +34,7 @@ export default function PublicFormPage() {
   if (status === "draft") return <StateCard title="This form is still a draft" message="The owner has not published it yet." />;
   if (status === "scheduled") return <StateCard title="This form is not open yet" message={form.beforeOpenMessage} date={form.opensAt} />;
   if (status === "closed") return <StateCard title="This form is closed" message={form.closedMessage} />;
-  if (submitted) return <Success message={form.successMessage} />;
+  if (submitted) return <Success message={form.successMessage} referenceNumber={referenceNumber} />;
 
   const activeForm = form;
   const section = activeForm.sections[sectionIndex] ?? activeForm.sections[0];
@@ -71,7 +72,12 @@ export default function PublicFormPage() {
     if (getEffectiveFormStatus(activeForm) !== "open") { window.location.reload(); return; }
     const score = calculateScore(activeForm, answers);
     try {
-      await saveResponse({ id: crypto.randomUUID(), formId: activeForm.id, submittedAt: new Date().toISOString(), answers, ...score });
+      let browserToken = localStorage.getItem("formflow.browser-token");
+      if (!browserToken) { browserToken = crypto.randomUUID(); localStorage.setItem("formflow.browser-token", browserToken); }
+      const response = await fetch("/api/responses/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: crypto.randomUUID(), formId: activeForm.id, answers, browserToken }) });
+      const payload = await response.json().catch(() => ({})) as { error?: string; referenceNumber?: string };
+      if (!response.ok) throw new Error(payload.error || "Unable to submit your response.");
+      setReferenceNumber(payload.referenceNumber || "");
       setSubmitted(true);
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "Unable to submit your response.");
@@ -94,5 +100,5 @@ function QuestionInput({ question, value, onChange }: { question: Question; valu
   return <div><label className="label text-base">{question.title}{question.required && <span className="ml-1 text-rose-500">*</span>}</label>{question.type === "long_text" ? <textarea className="field" rows={5} value={String(value ?? "")} onChange={(e) => onChange(e.target.value)}/> : question.type === "multiple_choice" ? <div className="mt-3 space-y-2">{(question.options ?? []).map((option) => <label key={option} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-3 hover:border-violet-300"><input type="radio" name={question.id} checked={value === option} onChange={() => onChange(option)}/><span>{option}</span></label>)}</div> : question.type === "checkboxes" ? <div className="mt-3 space-y-2">{(question.options ?? []).map((option) => { const values = Array.isArray(value) ? value : []; return <label key={option} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-3 hover:border-violet-300"><input type="checkbox" checked={values.includes(option)} onChange={(e) => onChange(e.target.checked ? [...values, option] : values.filter((item) => item !== option))}/><span>{option}</span></label>; })}</div> : question.type === "dropdown" ? <select className="field" value={String(value ?? "")} onChange={(e) => onChange(e.target.value)}><option value="">Select an option</option>{(question.options ?? []).map((option) => <option key={option}>{option}</option>)}</select> : <input className="field" type={question.type === "email" ? "email" : "text"} value={String(value ?? "")} onChange={(e) => onChange(e.target.value)}/>}</div>;
 }
 
-function Success({ message }: { message?: string }) { return <div className="mx-auto max-w-2xl px-5 py-20"><div className="card p-10 text-center"><CheckCircle2 className="mx-auto text-emerald-600" size={48}/><h1 className="mt-5 text-2xl font-bold">Response submitted</h1><p className="mt-2 text-slate-600">{message || "Thank you. Your response has been recorded."}</p></div></div>; }
+function Success({ message, referenceNumber }: { message?: string; referenceNumber?: string }) { return <div className="mx-auto max-w-2xl px-5 py-20"><div className="card p-10 text-center"><CheckCircle2 className="mx-auto text-emerald-600" size={48}/><h1 className="mt-5 text-2xl font-bold">Response submitted</h1><p className="mt-2 text-slate-600">{message || "Thank you. Your response has been recorded."}</p>{referenceNumber && <p className="mt-5 rounded-xl bg-slate-100 p-3 font-mono font-bold">Reference: {referenceNumber}</p>}</div></div>; }
 function StateCard({ title, message, date }: { title: string; message: string; date?: string | null }) { return <div className="mx-auto max-w-2xl px-5 py-20"><div className="card p-10 text-center"><Clock3 className="mx-auto text-violet-600" size={44}/><h1 className="mt-5 text-2xl font-bold">{title}</h1><p className="mt-3 text-slate-600">{message}</p>{date && <p className="mt-5 rounded-xl bg-slate-100 p-3 font-medium">Opens: {new Date(date).toLocaleString()}</p>}</div></div>; }

@@ -4,9 +4,9 @@ export { calculateScore } from "./scoring";
 
 const KEY = "formflow.responses.v1";
 function localList(): FormResponse[] { if (typeof window === "undefined") return []; try { return JSON.parse(localStorage.getItem(KEY) ?? "[]") as FormResponse[]; } catch { return []; } }
-export async function saveResponse(response: FormResponse) {
+export async function saveResponse(response: FormResponse, browserToken?: string) {
   try {
-    await submitRemoteResponse(response);
+    await submitRemoteResponse(response, browserToken);
   } catch (error) {
     const items = localList();
     localStorage.setItem(KEY, JSON.stringify([response, ...items]));

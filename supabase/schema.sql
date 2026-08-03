@@ -32,3 +32,11 @@ drop policy if exists "admin deletes responses" on public.form_responses;
 
 create index if not exists form_responses_form_id_idx on public.form_responses(form_id);
 create index if not exists forms_slug_idx on public.forms(slug);
+
+-- Sprint 6 response-management fields. Safe to run on an existing database.
+alter table public.form_responses add column if not exists reference_number text;
+alter table public.form_responses add column if not exists respondent_email text;
+alter table public.form_responses add column if not exists browser_token text;
+create unique index if not exists form_responses_reference_number_idx on public.form_responses(form_id, reference_number) where reference_number is not null;
+create index if not exists form_responses_email_idx on public.form_responses(form_id, respondent_email);
+create index if not exists form_responses_browser_idx on public.form_responses(form_id, browser_token);

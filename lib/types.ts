@@ -35,6 +35,11 @@ export type FormRecord = {
   showProgress: boolean;
   scoringEnabled?: boolean;
   successMessage?: string;
+  participantFieldQuestionId?: string | null;
+  responseLimit?: number | null;
+  oneResponsePerEmail?: boolean;
+  oneResponsePerBrowser?: boolean;
+  referencePrefix?: string;
   createdAt: string;
   updatedAt: string;
   archived?: boolean;
@@ -49,4 +54,5 @@ export type FormResponse = {
   answers: Record<string, AnswerValue>;
   totalScore: number;
   maxScore: number;
+  referenceNumber?: string;
 };

@@ -16,6 +16,11 @@ export function normalizeForm(form: FormRecord): FormRecord {
     showProgress: form.showProgress ?? true,
     scoringEnabled: form.scoringEnabled ?? true,
     successMessage: form.successMessage ?? "Thank you. Your response has been recorded.",
+    participantFieldQuestionId: form.participantFieldQuestionId ?? null,
+    responseLimit: form.responseLimit ?? null,
+    oneResponsePerEmail: form.oneResponsePerEmail ?? false,
+    oneResponsePerBrowser: form.oneResponsePerBrowser ?? false,
+    referencePrefix: form.referencePrefix ?? "FR",
   };
 }
 
