@@ -29,10 +29,12 @@ export default function ResponsesPage() {
 
   if (!form) return <main className="p-10">Form not found.</main>;
 
+  const activeForm = form;
+
   function exportExcel() {
     const rows = responses.map((response) => {
       const row: Record<string, string> = { "Submitted At": new Date(response.submittedAt).toLocaleString(), Result: response.result };
-      for (const question of form.questions) {
+      for (const question of activeForm.questions) {
         const value = response.answers[question.id];
         row[question.title] = Array.isArray(value) ? value.join(", ") : String(value ?? "");
       }
@@ -43,7 +45,7 @@ export default function ResponsesPage() {
     sheet["!cols"] = widths;
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, sheet, "Responses");
-    XLSX.writeFile(workbook, `${form.slug}-responses.xlsx`);
+    XLSX.writeFile(workbook, `${activeForm.slug}-responses.xlsx`);
   }
 
   return <main className="min-h-screen bg-[#f7f8fc] px-5 py-8 sm:px-8">
