@@ -1,4 +1,5 @@
 "use client";
+import AdminGuard from "@/components/AdminGuard";
 import { useRouter } from "next/navigation";
 import FormEditor from "@/components/FormEditor";
 import type { FormRecord } from "@/lib/types";
@@ -15,5 +16,5 @@ export default function NewFormPage() {
     sections: [{ id: sectionId, title: "Section 1", description: "" }], questions: [], logicRules: [], showProgress: true,
     createdAt: now, updatedAt: now
   };
-  return <FormEditor initialForm={initial} onSave={(form) => { saveForm(form); router.push("/dashboard"); }} />;
+  return <AdminGuard><FormEditor initialForm={initial} onSave={(form) => { saveForm(form); router.push("/dashboard"); }} /></AdminGuard>;
 }

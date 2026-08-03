@@ -1,5 +1,7 @@
 "use client";
 
+import AdminGuard from "@/components/AdminGuard";
+import { supabase } from "@/lib/supabase";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
@@ -148,7 +150,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <main className="min-h-screen bg-[#f7f8fc]">
+    <AdminGuard><main className="min-h-screen bg-[#f7f8fc]">
       <div className="flex min-h-screen">
         <aside className="hidden w-64 shrink-0 border-r border-slate-200 bg-white px-4 py-5 lg:block">
           <Link href="/" className="flex items-center gap-3 px-3">
@@ -187,7 +189,7 @@ export default function DashboardPage() {
               </div>
               <div className="flex items-center gap-3">
                 <Link href="/forms/new" className="btn-primary hidden sm:inline-flex"><Plus size={17} className="mr-2" />New form</Link>
-                <button className="grid h-10 w-10 place-items-center rounded-full bg-gradient-to-br from-violet-500 to-indigo-600 text-sm font-bold text-white shadow-sm" aria-label="Profile">AH</button>
+                <button onClick={() => void supabase.auth.signOut()} className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm font-semibold text-slate-600 hover:text-slate-950">Sign out</button>
               </div>
             </div>
           </header>
@@ -266,7 +268,7 @@ export default function DashboardPage() {
         </div>
       )}
       <Link href="/forms/new" aria-label="Create form" className="fixed bottom-6 right-6 z-40 grid h-14 w-14 place-items-center rounded-2xl bg-violet-600 text-white shadow-xl shadow-violet-300 transition hover:-translate-y-0.5 hover:bg-violet-700 sm:hidden"><Plus size={24} /></Link>
-    </main>
+    </main></AdminGuard>
   );
 }
 

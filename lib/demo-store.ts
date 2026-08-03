@@ -15,7 +15,6 @@ export function normalizeForm(form: FormRecord): FormRecord {
     logicRules: form.logicRules ?? [],
     showProgress: form.showProgress ?? true,
     scoringEnabled: form.scoringEnabled ?? true,
-    passingScore: form.passingScore ?? 60,
     successMessage: form.successMessage ?? "Thank you. Your response has been recorded.",
   };
 }

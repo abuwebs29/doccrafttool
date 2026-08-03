@@ -14,8 +14,7 @@ export function calculateScore(form: FormRecord, answers: Record<string, AnswerV
   const scored = form.questions.filter(q => q.scoreEnabled && (q.points ?? 0) > 0);
   const maxScore = scored.reduce((sum, q) => sum + (q.points ?? 0), 0);
   const totalScore = scored.reduce((sum, q) => sum + questionScore(q, answers[q.id]), 0);
-  const result: FormResponse["result"] = !form.scoringEnabled || maxScore === 0 ? "Not scored" : totalScore >= (form.passingScore ?? 60) ? "Pass" : "Fail";
-  return { totalScore, maxScore, result };
+  return { totalScore, maxScore };
 }
 export async function saveResponse(response: FormResponse) {
   const items = localList(); localStorage.setItem(KEY, JSON.stringify([response, ...items]));

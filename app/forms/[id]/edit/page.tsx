@@ -1,4 +1,5 @@
 "use client";
+import AdminGuard from "@/components/AdminGuard";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import FormEditor from "@/components/FormEditor";
@@ -10,6 +11,6 @@ export default function EditFormPage() {
   const router = useRouter();
   const [form, setForm] = useState<FormRecord | null>(null);
   useEffect(() => setForm(getForm(id) ?? null), [id]);
-  if (!form) return <div className="p-10">Loading form…</div>;
-  return <FormEditor initialForm={form} onSave={(updated) => { saveForm(updated); router.push("/dashboard"); }} />;
+  if (!form) return <AdminGuard><div className="p-10">Loading form…</div></AdminGuard>;
+  return <AdminGuard><FormEditor initialForm={form} onSave={(updated) => { saveForm(updated); router.push("/dashboard"); }} /></AdminGuard>;
 }

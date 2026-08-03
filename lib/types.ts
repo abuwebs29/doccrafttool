@@ -34,7 +34,6 @@ export type FormRecord = {
   logicRules: LogicRule[];
   showProgress: boolean;
   scoringEnabled?: boolean;
-  passingScore?: number;
   successMessage?: string;
   createdAt: string;
   updatedAt: string;
@@ -50,5 +49,4 @@ export type FormResponse = {
   answers: Record<string, AnswerValue>;
   totalScore: number;
   maxScore: number;
-  result: "Pass" | "Fail" | "Not scored";
 };

@@ -57,3 +57,13 @@ This package adds a redesigned form-building workspace with native drag-and-drop
 The responses dashboard shows numeric total score and Pass/Fail. Excel export intentionally omits numeric score and includes only Result (Pass/Fail), as required.
 
 This is designed for internal link-only use and has no public form directory, account registration, or respondent login.
+
+## Admin-only setup
+1. Run `supabase/schema.sql` in Supabase SQL Editor.
+2. In Supabase Authentication > Users, create one user with the admin email and password.
+3. Add that user to the admin allow-list by running:
+   `insert into public.admin_users(user_id) select id from auth.users where email='YOUR_ADMIN_EMAIL';`
+4. Keep `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in Cloudflare as plain-text variables.
+5. Admin signs in at `/login`. Public respondents only receive `/f/<slug>` links.
+
+Pass/fail and the 60-point threshold have been removed. Optional numeric question scoring remains, and Excel exports include numeric total and maximum scores.
