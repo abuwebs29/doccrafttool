@@ -3,7 +3,7 @@ import type { FormRecord, FormResponse } from "./types";
 export const remoteEnabled = true;
 
 export async function syncFormRemote(form: FormRecord) {
-  const response = await fetch("/api/forms/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form) });
+  const response = await fetch("/api/forms/sync", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(form), keepalive: true });
   if (!response.ok) throw new Error((await response.json().catch(() => ({}))).error ?? "Unable to sync form.");
 }
 

@@ -67,3 +67,19 @@ Copy `.dev.vars.example` to `.dev.vars`, fill in the values, then run:
 npm install
 npm run dev
 ```
+
+## Important Cloudflare runtime fix
+
+The deploy command includes `--keep-vars` so runtime secrets configured on the Worker are not removed during Git deployments. Form save and publish now wait for the Supabase upsert to finish before leaving the editor.
+
+After deployment, verify:
+
+```text
+https://your-domain.com/api/health
+```
+
+Expected response:
+
+```json
+{"ok":true,"configured":true}
+```

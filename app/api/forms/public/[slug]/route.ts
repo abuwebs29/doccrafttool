@@ -5,10 +5,12 @@ export async function GET(_request: Request, context: { params: Promise<{ slug: 
   try {
     const { slug } = await context.params;
     const { data, error } = await getSupabaseAdmin().from("forms").select("data").eq("slug", slug).eq("status", "published").maybeSingle();
-    if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+    if (error) return NextResponse.json({ error: error.message, code: error.code }, { status: 500 });
     if (!data) return NextResponse.json({ form: null }, { status: 404 });
     return NextResponse.json({ form: data.data });
-  } catch {
-    return NextResponse.json({ form: null }, { status: 503 });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Supabase connection unavailable.";
+    console.error("Public form API failed:", message);
+    return NextResponse.json({ error: message, form: null }, { status: 503 });
   }
 }

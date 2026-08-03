@@ -30,13 +30,13 @@ export function getForm(idOrSlug: string): FormRecord | undefined {
   return listForms().find((form) => form.id === idOrSlug || form.slug === idOrSlug);
 }
 
-export function saveForm(form: FormRecord): void {
+export async function saveForm(form: FormRecord): Promise<void> {
   const forms = listForms();
   const normalized = normalizeForm(form);
   const index = forms.findIndex((item) => item.id === form.id);
   if (index >= 0) forms[index] = normalized; else forms.unshift(normalized);
   localStorage.setItem(KEY, JSON.stringify(forms));
-  void syncFormRemote(normalized).catch((error) => console.error("Form sync failed", error));
+  await syncFormRemote(normalized);
 }
 
 export function deleteForm(id: string): void { localStorage.setItem(KEY, JSON.stringify(listForms().filter((form) => form.id !== id))); void deleteRemoteForm(id).catch((error) => console.error("Remote form delete failed", error)); }
@@ -55,12 +55,12 @@ export function duplicateForm(id: string): FormRecord | undefined {
     questions: source.questions.map((question) => ({ ...question, id: questionMap.get(question.id)!, sectionId: sectionMap.get(question.sectionId)!, options: question.options ? [...question.options] : undefined })),
     logicRules: source.logicRules.map((rule) => ({ ...rule, id: crypto.randomUUID(), sectionId: sectionMap.get(rule.sectionId)!, questionId: questionMap.get(rule.questionId)!, targetSectionId: rule.targetSectionId ? sectionMap.get(rule.targetSectionId) : undefined })),
   };
-  saveForm(copy); return copy;
+  void saveForm(copy).catch((error) => console.error("Form sync failed", error)); return copy;
 }
 
 export function setArchived(id: string, archived: boolean): void {
   const form = getForm(id); if (!form) return;
-  saveForm({ ...form, archived, updatedAt: new Date().toISOString() });
+  void saveForm({ ...form, archived, updatedAt: new Date().toISOString() }).catch((error) => console.error("Form sync failed", error));
 }
 
 export async function hydrateForms(): Promise<FormRecord[]> {

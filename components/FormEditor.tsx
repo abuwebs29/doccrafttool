@@ -57,16 +57,26 @@ export default function FormEditor({ initialForm, onSave }: { initialForm: FormR
     });
   }
 
-  function persist(publish = false, navigate = false) {
+  async function persist(publish = false, navigate = false) {
     const updated = { ...formRef.current, status: publish ? "published" as const : formRef.current.status, updatedAt: new Date().toISOString() };
-    setSaveState("saving"); saveForm(updated); setForm(updated); formRef.current = updated;
-    window.setTimeout(() => setSaveState("saved"), 220); if (navigate) onSave(updated);
+    setSaveState("saving");
+    setForm(updated);
+    formRef.current = updated;
+    try {
+      await saveForm(updated);
+      setSaveState("saved");
+      if (navigate) onSave(updated);
+    } catch (error) {
+      console.error("Form save failed", error);
+      setSaveState("unsaved");
+      window.alert(error instanceof Error ? error.message : "Unable to save form to Supabase.");
+    }
   }
-  useEffect(() => { if (!ready.current) { ready.current = true; return; } if (saveState !== "unsaved") return; const timer = window.setTimeout(() => persist(), 850); return () => clearTimeout(timer); }, [form, saveState]);
+  useEffect(() => { if (!ready.current) { ready.current = true; return; } if (saveState !== "unsaved") return; const timer = window.setTimeout(() => { void persist(); }, 850); return () => clearTimeout(timer); }, [form, saveState]);
   useEffect(() => {
     const listener = (event: KeyboardEvent) => {
       const mod = event.metaKey || event.ctrlKey; if (!mod) return;
-      if (event.key.toLowerCase() === "s") { event.preventDefault(); persist(); }
+      if (event.key.toLowerCase() === "s") { event.preventDefault(); void persist(); }
       if (event.key.toLowerCase() === "z") { event.preventDefault(); event.shiftKey ? redo() : undo(); }
     };
     window.addEventListener("keydown", listener); return () => window.removeEventListener("keydown", listener);

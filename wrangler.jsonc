@@ -19,5 +19,14 @@
   ],
   "observability": {
     "enabled": true
+  },
+  "secrets": {
+    "required": [
+      "SUPABASE_URL",
+      "SUPABASE_SERVICE_ROLE_KEY",
+      "ADMIN_EMAIL",
+      "ADMIN_PASSWORD",
+      "ADMIN_SESSION_SECRET"
+    ]
   }
 }
