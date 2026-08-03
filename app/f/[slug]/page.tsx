@@ -1,36 +1,94 @@
 "use client";
 import { useParams } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { getForm } from "@/lib/demo-store";
+import { getRemoteForm } from "@/lib/remote-store";
+import { calculateScore, saveResponse } from "@/lib/response-store";
 import { getEffectiveFormStatus } from "@/lib/form-status";
-import type { FormRecord } from "@/lib/types";
-import { CheckCircle2, Clock3 } from "lucide-react";
+import type { FormRecord, Question } from "@/lib/types";
+import { ArrowLeft, ArrowRight, CheckCircle2, Clock3 } from "lucide-react";
+
+type Answers = Record<string, string | string[]>;
 
 export default function PublicFormPage() {
   const { slug } = useParams<{ slug: string }>();
   const [form, setForm] = useState<FormRecord | null>(null);
+  const [sectionIndex, setSectionIndex] = useState(0);
+  const [answers, setAnswers] = useState<Answers>({});
   const [submitted, setSubmitted] = useState(false);
-  useEffect(() => { setForm(getForm(slug) ?? null); const timer = setInterval(() => setForm(getForm(slug) ?? null), 30000); return () => clearInterval(timer); }, [slug]);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    let active = true;
+    async function load() {
+      const remote = await getRemoteForm(slug);
+      if (active) setForm(remote ?? getForm(slug) ?? null);
+    }
+    void load();
+    const timer = setInterval(load, 30000);
+    return () => { active = false; clearInterval(timer); };
+  }, [slug]);
   if (!form) return <div className="mx-auto max-w-xl p-10 text-center">Form not found.</div>;
   const status = getEffectiveFormStatus(form);
   if (status === "draft") return <StateCard title="This form is still a draft" message="The owner has not published it yet." />;
   if (status === "scheduled") return <StateCard title="This form is not open yet" message={form.beforeOpenMessage} date={form.opensAt} />;
   if (status === "closed") return <StateCard title="This form is closed" message={form.closedMessage} />;
-  if (submitted) return <div className="mx-auto max-w-2xl px-5 py-20"><div className="card p-10 text-center"><CheckCircle2 className="mx-auto text-emerald-600" size={48} /><h1 className="mt-5 text-2xl font-bold">Response submitted</h1><p className="mt-2 text-slate-600">Thank you. Your response has been recorded in this prototype.</p></div></div>;
+  if (submitted) return <Success message={form.successMessage} />;
 
   const activeForm = form;
+  const section = activeForm.sections[sectionIndex] ?? activeForm.sections[0];
+  const questions = activeForm.questions.filter((q) => q.sectionId === section.id);
+  const progress = ((sectionIndex + 1) / activeForm.sections.length) * 100;
 
-  function submit(e: FormEvent) {
-    e.preventDefault();
-    if (getEffectiveFormStatus(activeForm) !== "open") {
-      window.location.reload();
-      return;
-    }
+  function validateSection() {
+    const missing = questions.find((q) => q.required && (!answers[q.id] || (Array.isArray(answers[q.id]) && !(answers[q.id] as string[]).length)));
+    if (missing) { setError(`Please answer “${missing.title}” before continuing.`); return false; }
+    setError(""); return true;
+  }
+
+  function resolveNext() {
+    const matchingRule = activeForm.logicRules.find((rule) => {
+      if (rule.sectionId !== section.id) return false;
+      const answer = answers[rule.questionId];
+      return Array.isArray(answer) ? answer.includes(rule.value) : answer === rule.value;
+    });
+    if (!matchingRule || matchingRule.action === "next") return sectionIndex + 1;
+    if (matchingRule.action === "submit") return "submit";
+    const target = activeForm.sections.findIndex((item) => item.id === matchingRule.targetSectionId);
+    return target >= 0 ? target : sectionIndex + 1;
+  }
+
+  function next() {
+    if (!validateSection()) return;
+    const destination = resolveNext();
+    if (destination === "submit" || destination >= activeForm.sections.length) { finish(); return; }
+    setSectionIndex(destination); window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  async function finish(event?: FormEvent) {
+    event?.preventDefault();
+    if (!validateSection()) return;
+    if (getEffectiveFormStatus(activeForm) !== "open") { window.location.reload(); return; }
+    const score = calculateScore(activeForm, answers);
+    await saveResponse({ id: crypto.randomUUID(), formId: activeForm.id, submittedAt: new Date().toISOString(), answers, ...score });
     setSubmitted(true);
   }
-  return <main className="mx-auto max-w-2xl px-5 py-12"><div className="card overflow-hidden"><div className="h-3 bg-violet-600" /><div className="p-7"><h1 className="text-3xl font-bold">{form.title}</h1><p className="mt-3 text-slate-600">{form.description}</p></div></div><form className="mt-5 space-y-4" onSubmit={submit}>{form.questions.map((q) => <div className="card p-6" key={q.id}><label className="label text-base">{q.title}{q.required && <span className="ml-1 text-red-500">*</span>}</label>{q.type === "long_text" ? <textarea className="field" required={q.required} rows={5} /> : q.type === "multiple_choice" || q.type === "checkboxes" ? <div className="mt-3 space-y-2">{(q.options ?? []).map((option) => <label className="flex gap-2" key={option}><input required={q.required && q.type === "multiple_choice"} name={q.id} type={q.type === "multiple_choice" ? "radio" : "checkbox"} />{option}</label>)}</div> : q.type === "dropdown" ? <select className="field" required={q.required}><option value="">Select an option</option>{(q.options ?? []).map((option) => <option key={option}>{option}</option>)}</select> : <input className="field" required={q.required} type={q.type === "email" ? "email" : "text"} />}</div>)}<button className="btn-primary w-full" type="submit">Submit response</button></form></main>;
+
+  return <main className="min-h-screen bg-[#f7f8fc] px-4 py-8 sm:py-12">
+    <div className="mx-auto max-w-2xl">
+      <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-xl shadow-slate-200/50">
+        <div className="h-3 bg-violet-600"/>
+        {activeForm.showProgress && <div className="h-1.5 bg-slate-100"><div className="h-full bg-violet-500 transition-all duration-300" style={{ width: `${progress}%` }}/></div>}
+        <div className="border-b border-slate-100 p-7 sm:p-9"><div className="flex items-center justify-between gap-4"><span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-bold text-violet-700">Step {sectionIndex + 1} of {activeForm.sections.length}</span><span className="text-xs font-medium text-slate-400">{Math.round(progress)}% complete</span></div><h1 className="mt-5 text-3xl font-bold tracking-tight">{activeForm.title}</h1>{activeForm.description && <p className="mt-3 leading-7 text-slate-600">{activeForm.description}</p>}</div>
+        <form onSubmit={finish} className="p-7 sm:p-9"><div className="rounded-2xl bg-slate-50 p-5"><p className="text-xs font-bold uppercase tracking-wider text-violet-600">Section {sectionIndex + 1}</p><h2 className="mt-1 text-xl font-bold">{section.title}</h2>{section.description && <p className="mt-1 text-sm text-slate-500">{section.description}</p>}</div><div className="mt-7 space-y-6">{questions.map((question) => <QuestionInput key={question.id} question={question} value={answers[question.id]} onChange={(value) => setAnswers((current) => ({ ...current, [question.id]: value }))}/>)}</div>{error && <p className="mt-6 rounded-xl bg-rose-50 p-3 text-sm font-medium text-rose-700">{error}</p>}<div className="mt-8 flex items-center justify-between gap-3">{sectionIndex > 0 ? <button type="button" className="btn-secondary" onClick={() => { setError(""); setSectionIndex((value) => value - 1); }}><ArrowLeft size={16} className="mr-2"/>Back</button> : <span/>}{sectionIndex === activeForm.sections.length - 1 ? <button className="btn-primary" type="submit">Submit response</button> : <button type="button" className="btn-primary" onClick={next}>Next<ArrowRight size={16} className="ml-2"/></button>}</div></form>
+      </div>
+    </div>
+  </main>;
 }
 
-function StateCard({ title, message, date }: { title: string; message: string; date?: string | null }) {
-  return <div className="mx-auto max-w-2xl px-5 py-20"><div className="card p-10 text-center"><Clock3 className="mx-auto text-violet-600" size={44} /><h1 className="mt-5 text-2xl font-bold">{title}</h1><p className="mt-3 text-slate-600">{message}</p>{date && <p className="mt-5 rounded-xl bg-slate-100 p-3 font-medium">Opens: {new Date(date).toLocaleString()}</p>}</div></div>;
+function QuestionInput({ question, value, onChange }: { question: Question; value: string | string[] | undefined; onChange: (value: string | string[]) => void }) {
+  return <div><label className="label text-base">{question.title}{question.required && <span className="ml-1 text-rose-500">*</span>}</label>{question.type === "long_text" ? <textarea className="field" rows={5} value={String(value ?? "")} onChange={(e) => onChange(e.target.value)}/> : question.type === "multiple_choice" ? <div className="mt-3 space-y-2">{(question.options ?? []).map((option) => <label key={option} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-3 hover:border-violet-300"><input type="radio" name={question.id} checked={value === option} onChange={() => onChange(option)}/><span>{option}</span></label>)}</div> : question.type === "checkboxes" ? <div className="mt-3 space-y-2">{(question.options ?? []).map((option) => { const values = Array.isArray(value) ? value : []; return <label key={option} className="flex cursor-pointer items-center gap-3 rounded-xl border border-slate-200 p-3 hover:border-violet-300"><input type="checkbox" checked={values.includes(option)} onChange={(e) => onChange(e.target.checked ? [...values, option] : values.filter((item) => item !== option))}/><span>{option}</span></label>; })}</div> : question.type === "dropdown" ? <select className="field" value={String(value ?? "")} onChange={(e) => onChange(e.target.value)}><option value="">Select an option</option>{(question.options ?? []).map((option) => <option key={option}>{option}</option>)}</select> : <input className="field" type={question.type === "email" ? "email" : "text"} value={String(value ?? "")} onChange={(e) => onChange(e.target.value)}/>}</div>;
 }
+
+function Success({ message }: { message?: string }) { return <div className="mx-auto max-w-2xl px-5 py-20"><div className="card p-10 text-center"><CheckCircle2 className="mx-auto text-emerald-600" size={48}/><h1 className="mt-5 text-2xl font-bold">Response submitted</h1><p className="mt-2 text-slate-600">{message || "Thank you. Your response has been recorded."}</p></div></div>; }
+function StateCard({ title, message, date }: { title: string; message: string; date?: string | null }) { return <div className="mx-auto max-w-2xl px-5 py-20"><div className="card p-10 text-center"><Clock3 className="mx-auto text-violet-600" size={44}/><h1 className="mt-5 text-2xl font-bold">{title}</h1><p className="mt-3 text-slate-600">{message}</p>{date && <p className="mt-5 rounded-xl bg-slate-100 p-3 font-medium">Opens: {new Date(date).toLocaleString()}</p>}</div></div>; }

@@ -63,3 +63,39 @@ begin
   return response_id;
 end;
 $$;
+
+-- Sprint 5 shared internal forms and response storage
+create table if not exists public.forms (
+  id uuid primary key,
+  slug text unique not null,
+  status text not null default 'draft',
+  data jsonb not null,
+  updated_at timestamptz not null default now()
+);
+
+create table if not exists public.form_responses (
+  id uuid primary key,
+  form_id uuid not null references public.forms(id) on delete cascade,
+  submitted_at timestamptz not null default now(),
+  answers jsonb not null default '{}'::jsonb,
+  total_score numeric not null default 0,
+  max_score numeric not null default 0,
+  result text not null default 'Not scored' check (result in ('Pass','Fail','Not scored'))
+);
+
+alter table public.forms enable row level security;
+alter table public.form_responses enable row level security;
+
+drop policy if exists "published forms are link-readable" on public.forms;
+create policy "published forms are link-readable" on public.forms for select using (status = 'published');
+drop policy if exists "internal client can sync forms" on public.forms;
+create policy "internal client can sync forms" on public.forms for insert with check (true);
+drop policy if exists "internal client can update forms" on public.forms;
+create policy "internal client can update forms" on public.forms for update using (true) with check (true);
+drop policy if exists "any link respondent can submit" on public.form_responses;
+create policy "any link respondent can submit" on public.form_responses for insert with check (true);
+drop policy if exists "internal client can read responses" on public.form_responses;
+create policy "internal client can read responses" on public.form_responses for select using (true);
+
+create index if not exists form_responses_form_id_idx on public.form_responses(form_id);
+create index if not exists forms_slug_idx on public.forms(slug);
