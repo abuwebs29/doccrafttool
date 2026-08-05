@@ -173,3 +173,7 @@ This release removes analytics, contacts, access-code workflows, browser-based d
 ### Simplified-edition database cleanup
 
 Existing installations should run `supabase/migrate-simplified-edition.sql` once. It removes the unused analytics table and the response-reference, browser-token, and access-code columns.
+
+## Response display hotfix
+
+This release fixes response listing after the simplified-edition migration removed the legacy `reference_number` column. It also keeps each form's cached dashboard response count synchronized after successful submissions and shows API errors on the Results page instead of silently displaying an empty table.

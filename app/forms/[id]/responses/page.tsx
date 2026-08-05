@@ -24,8 +24,17 @@ export default function ResponsesPage() {
   const [selected, setSelected] = useState<string[]>([]);
   const [page, setPage] = useState(1);
   const [busy, setBusy] = useState(false);
+  const [loadError, setLoadError] = useState("");
 
-  useEffect(() => { const current = getForm(id) ?? null; setForm(current); void listResponses(id).then(setResponses); }, [id]);
+  useEffect(() => {
+    const current = getForm(id) ?? null;
+    setForm(current);
+    setLoadError("");
+    void listResponses(id).then(setResponses).catch((error) => {
+      setResponses([]);
+      setLoadError(error instanceof Error ? error.message : "Unable to load responses.");
+    });
+  }, [id]);
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     const from = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : 0;
@@ -85,6 +94,7 @@ export default function ResponsesPage() {
 
   return <AdminGuard><main className="min-h-screen bg-[#f7f8fc] px-5 py-8 sm:px-8"><div className="mx-auto max-w-7xl">
     <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between"><div><Link href="/dashboard" className="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 hover:text-violet-700"><ArrowLeft size={16}/>Dashboard</Link><h1 className="mt-3 text-3xl font-bold">{activeForm.title}</h1><p className="mt-1 text-slate-500">Review, search, export and manage submitted responses.</p></div><div className="flex flex-wrap gap-2"><button className="btn-secondary" onClick={deleteSelected} disabled={!selected.length || busy}><Trash2 size={17} className="mr-2"/>Delete selected</button><button className="btn-primary" onClick={exportExcel} disabled={!exportItems.length}><Download size={17} className="mr-2"/>{selected.length ? `Export selected (${selected.length})` : "Download Excel"}</button></div></div>
+    {loadError && <div className="mt-5 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{loadError}</div>}
     <div className="mt-7 grid gap-4 sm:grid-cols-3"><Stat label="Responses" value={responses.length}/><Stat label="Average score" value={average(responses)}/><Stat label="Highest score" value={highest(responses)}/></div>
     <div className="mt-7 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div className="grid gap-3 lg:grid-cols-[1fr_180px_170px_170px]"><div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={17}/><input className="field pl-9" placeholder="Search name, email or answer..." value={query} onChange={(e) => setQuery(e.target.value)}/></div><select className="field" value={sort} onChange={(e) => setSort(e.target.value as SortMode)}><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="highest">Highest score</option><option value="lowest">Lowest score</option></select><input className="field" type="date" aria-label="From date" value={dateFrom} onChange={(e) => setDateFrom(e.target.value)}/><input className="field" type="date" aria-label="To date" value={dateTo} onChange={(e) => setDateTo(e.target.value)}/></div></div>
     <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="overflow-x-auto"><table className="w-full min-w-[850px] text-left"><thead className="bg-slate-50 text-xs uppercase tracking-wider text-slate-500"><tr><th className="px-4 py-3"><input type="checkbox" checked={pageSelected} onChange={(e) => setSelected((current) => e.target.checked ? Array.from(new Set([...current, ...pageIds])) : current.filter((item) => !pageIds.includes(item)))}/></th><th className="px-5 py-3">Submitted</th><th className="px-5 py-3">Participant</th><th className="px-5 py-3">Score</th><th className="px-5 py-3 text-right">Action</th></tr></thead><tbody>{pageItems.map((response) => <tr key={response.id} className="border-t border-slate-100 hover:bg-slate-50/70"><td className="px-4 py-4"><input type="checkbox" checked={selected.includes(response.id)} onChange={(e) => setSelected((current) => e.target.checked ? [...current, response.id] : current.filter((item) => item !== response.id))}/></td><td className="px-5 py-4 text-sm text-slate-600">{new Date(response.submittedAt).toLocaleString()}</td><td className="px-5 py-4 font-semibold">{participantName(activeForm, response)}</td><td className="px-5 py-4 font-bold">{response.maxScore ? `${response.totalScore} / ${response.maxScore}` : "—"}</td><td className="px-5 py-4 text-right"><Link className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-violet-700 hover:bg-violet-50" href={`/forms/${activeForm.id}/responses/${response.id}`}><Eye size={16}/>View</Link></td></tr>)}</tbody></table>{!pageItems.length && <div className="p-12 text-center text-slate-500">No responses found.</div>}</div>

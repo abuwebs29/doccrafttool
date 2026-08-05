@@ -71,6 +71,16 @@ export async function POST(request: Request) {
     };
     const { error: insertError } = await supabase.from("form_responses").insert(responseRow);
     if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
+
+    // Keep the dashboard form card and total response statistic in sync with the database.
+    // The response table remains the source of truth; this cached count is only for fast dashboard display.
+    const updatedForm: FormRecord = { ...form, responseCount: (count ?? 0) + 1, updatedAt: submittedAt };
+    const { error: formUpdateError } = await supabase
+      .from("forms")
+      .update({ data: updatedForm, updated_at: submittedAt })
+      .eq("id", body.formId);
+    if (formUpdateError) console.error("Unable to update cached response count", formUpdateError);
+
     await supabase.from("response_backups").insert({ response_id: body.id, form_id: body.formId, payload: responseRow }).then(() => undefined);
     return NextResponse.json({ ok: true, submittedAt, totalScore, maxScore });
   } catch (error) {

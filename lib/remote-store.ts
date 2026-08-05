@@ -9,7 +9,10 @@ export async function syncFormRemote(form: FormRecord) {
 
 export async function listRemoteForms(): Promise<FormRecord[]> {
   const response = await fetch("/api/forms/admin", { cache: "no-store" });
-  if (!response.ok) return [];
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({})) as { error?: string };
+    throw new Error(payload.error ?? "Unable to load responses.");
+  }
   const payload = await response.json() as { forms?: FormRecord[] };
   return payload.forms ?? [];
 }
@@ -43,7 +46,10 @@ export async function submitRemoteResponse(responseData: FormResponse, browserTo
 
 export async function listRemoteResponses(formId: string): Promise<FormResponse[]> {
   const response = await fetch(`/api/responses/${encodeURIComponent(formId)}`, { cache: "no-store" });
-  if (!response.ok) return [];
-  const payload = await response.json() as { responses?: Array<{ id:string; form_id:string; submitted_at:string; answers:FormResponse["answers"]; total_score:number; max_score:number; reference_number?:string }> };
+  if (!response.ok) {
+    const payload = await response.json().catch(() => ({})) as { error?: string };
+    throw new Error(payload.error ?? "Unable to load responses.");
+  }
+  const payload = await response.json() as { responses?: Array<{ id:string; form_id:string; submitted_at:string; answers:FormResponse["answers"]; total_score:number; max_score:number }> };
   return (payload.responses ?? []).map((item) => ({ id: item.id, formId: item.form_id, submittedAt: item.submitted_at, answers: item.answers, totalScore: Number(item.total_score), maxScore: Number(item.max_score) }));
 }

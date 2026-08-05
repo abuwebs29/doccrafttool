@@ -18,7 +18,7 @@ export default function ResponseDetailPage() {
     setForm(getForm(id) ?? null);
     void fetch(`/api/responses/${encodeURIComponent(id)}/${encodeURIComponent(responseId)}`, { cache: "no-store" }).then(async (result) => {
       if (!result.ok) return null;
-      const payload = await result.json() as { response?: { id:string; form_id:string; submitted_at:string; answers:FormResponse["answers"]; total_score:number; max_score:number; reference_number?:string } };
+      const payload = await result.json() as { response?: { id:string; form_id:string; submitted_at:string; answers:FormResponse["answers"]; total_score:number; max_score:number } };
       const item = payload.response;
       return item ? { id:item.id, formId:item.form_id, submittedAt:item.submitted_at, answers:item.answers, totalScore:Number(item.total_score), maxScore:Number(item.max_score) } : null;
     }).then(setResponse).finally(() => setLoading(false));
