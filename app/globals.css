@@ -14,3 +14,17 @@ input, textarea, select { @apply outline-none; }
 .builder-icon-button { @apply grid h-10 w-10 place-items-center rounded-xl text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 disabled:cursor-not-allowed disabled:opacity-30; }
 .builder-tab { @apply relative flex h-14 items-center border-b-2 border-transparent px-4 text-sm font-semibold text-slate-500 transition hover:text-slate-900; }
 .builder-tab-active { @apply border-violet-600 text-violet-700; }
+
+/* Final stabilization: visible keyboard focus and reduced-motion support. */
+:focus-visible {
+  outline: 3px solid rgba(124, 58, 237, 0.55);
+  outline-offset: 3px;
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

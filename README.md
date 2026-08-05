@@ -136,3 +136,30 @@ Run `supabase/migrate-sprint-12.sql` once. New admin pages:
 Optional Cloudflare variable: `ADMIN_SESSION_HOURS` (1–168, default 12). The setting page stores the policy; the environment variable enforces token lifetime.
 
 Before restoring or cleaning data, download a full backup from the System page.
+
+## Final stabilization release
+
+This release adds production-focused safeguards without adding a new product feature area:
+
+- Same-origin checks for login and public submission requests
+- Login and submission rate limiting
+- Global security headers and Content Security Policy
+- Error reference IDs for safer support and debugging
+- Database indexes for forms, responses, analytics, audit logs, and backups
+- Keyboard focus visibility and reduced-motion accessibility support
+- Type-check and full-check scripts
+
+### Required database migration
+
+Run `supabase/migrate-final-stabilization.sql` once in the Supabase SQL Editor.
+
+### Production verification
+
+Run locally or in CI:
+
+```bash
+npm run typecheck
+npm run build
+```
+
+Before launch, verify: admin-route protection, public API isolation, scheduled opening/closing, duplicate controls, response limits, large Excel exports, backup/restore, maintenance mode, mobile layout, and all Cloudflare runtime secrets.

@@ -6,6 +6,7 @@ import { getSupabaseAdmin } from "@/lib/supabase-server";
 import { classifyClient } from "@/lib/analytics";
 import { getSystemSettings } from "@/lib/system-settings";
 import type { AnswerValue, FormRecord, Question } from "@/lib/types";
+import { checkRateLimit, clientKey, isSameOrigin, rateLimitResponse, safeErrorId } from "@/lib/security";
 
 function normalizeCode(value?: string) { return (value ?? "").trim().toUpperCase(); }
 function hasAnswer(value: AnswerValue | undefined) { return Array.isArray(value) ? value.length > 0 : typeof value === "string" && value.trim().length > 0; }
@@ -27,6 +28,9 @@ function validAnswer(question: Question, value: AnswerValue | undefined) {
 }
 
 export async function POST(request: Request) {
+  if (!isSameOrigin(request)) return NextResponse.json({ error: "Request origin could not be verified." }, { status: 403 });
+  const rate = checkRateLimit(clientKey(request, "public-submit"), 12, 10 * 60 * 1000);
+  if (!rate.allowed) return rateLimitResponse(rate.retryAfter);
   try {
     const settings = await getSystemSettings();
     if (settings.maintenanceMode || settings.readOnlyMode) return NextResponse.json({ error: settings.maintenanceMode ? "Forms are temporarily unavailable for maintenance." : "The system is currently read-only." }, { status: 503 });
@@ -106,7 +110,8 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ ok: true, submittedAt, totalScore, maxScore, referenceNumber });
   } catch (error) {
-    console.error("Response submission failed", error);
-    return NextResponse.json({ error: "Unable to submit response." }, { status: 500 });
+    const errorId = safeErrorId();
+    console.error("Response submission failed", { errorId, error });
+    return NextResponse.json({ error: `Unable to submit response. Reference: ${errorId}` }, { status: 500, headers: { "Cache-Control": "no-store" } });
   }
 }
