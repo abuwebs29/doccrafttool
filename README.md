@@ -177,3 +177,7 @@ Existing installations should run `supabase/migrate-simplified-edition.sql` once
 ## Response display hotfix
 
 This release fixes response listing after the simplified-edition migration removed the legacy `reference_number` column. It also keeps each form's cached dashboard response count synchronized after successful submissions and shows API errors on the Results page instead of silently displaying an empty table.
+
+## FormFlow UI 2.0
+
+This release redesigns only the participant-facing shared form (`/f/[slug]`). It does not change form logic, scheduling, scoring, response saving, branching, validation, or admin functionality.
