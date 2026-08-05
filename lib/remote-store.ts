@@ -45,5 +45,5 @@ export async function listRemoteResponses(formId: string): Promise<FormResponse[
   const response = await fetch(`/api/responses/${encodeURIComponent(formId)}`, { cache: "no-store" });
   if (!response.ok) return [];
   const payload = await response.json() as { responses?: Array<{ id:string; form_id:string; submitted_at:string; answers:FormResponse["answers"]; total_score:number; max_score:number; reference_number?:string }> };
-  return (payload.responses ?? []).map((item) => ({ id: item.id, formId: item.form_id, submittedAt: item.submitted_at, answers: item.answers, totalScore: Number(item.total_score), maxScore: Number(item.max_score), referenceNumber: item.reference_number }));
+  return (payload.responses ?? []).map((item) => ({ id: item.id, formId: item.form_id, submittedAt: item.submitted_at, answers: item.answers, totalScore: Number(item.total_score), maxScore: Number(item.max_score) }));
 }

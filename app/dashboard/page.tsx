@@ -161,8 +161,6 @@ export default function DashboardPage() {
           <nav className="mt-8 space-y-1">
             <SidebarItem active icon={LayoutDashboard} label="Dashboard" />
             <SidebarItem icon={FileText} label="My forms" />
-            <SidebarItem icon={BarChart3} label="Analytics" badge="Soon" />
-            <SidebarItem icon={Users} label="Contacts" badge="Soon" />
           </nav>
           <p className="mb-2 mt-8 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Workspace</p>
           <nav className="space-y-1">

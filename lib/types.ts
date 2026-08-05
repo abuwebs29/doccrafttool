@@ -11,14 +11,10 @@ export type Question = {
   points?: number;
   correctAnswers?: string[];
   description?: string;
-  placeholder?: string;
-  minLength?: number | null;
-  maxLength?: number | null;
   minValue?: number | null;
   maxValue?: number | null;
   minDate?: string | null;
   maxDate?: string | null;
-  customError?: string;
   scaleMin?: number;
   scaleMax?: number;
   scaleMinLabel?: string;
@@ -57,13 +53,8 @@ export type FormRecord = {
   participantFieldQuestionId?: string | null;
   responseLimit?: number | null;
   oneResponsePerEmail?: boolean;
-  oneResponsePerBrowser?: boolean;
-  oneResponsePerAccessCode?: boolean;
-  requireAccessCode?: boolean;
-  accessCodes?: string[];
   linkExpiresAt?: string | null;
   spamProtectionEnabled?: boolean;
-  referencePrefix?: string;
   createdAt: string;
   updatedAt: string;
   archived?: boolean;
@@ -78,5 +69,4 @@ export type FormResponse = {
   answers: Record<string, AnswerValue>;
   totalScore: number;
   maxScore: number;
-  referenceNumber?: string;
 };

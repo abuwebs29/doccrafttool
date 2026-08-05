@@ -145,7 +145,7 @@ This release adds production-focused safeguards without adding a new product fea
 - Login and submission rate limiting
 - Global security headers and Content Security Policy
 - Error reference IDs for safer support and debugging
-- Database indexes for forms, responses, analytics, audit logs, and backups
+- Database indexes for forms, responses, audit logs, and backups
 - Keyboard focus visibility and reduced-motion accessibility support
 - Type-check and full-check scripts
 
@@ -163,3 +163,13 @@ npm run build
 ```
 
 Before launch, verify: admin-route protection, public API isolation, scheduled opening/closing, duplicate controls, response limits, large Excel exports, backup/restore, maintenance mode, mobile layout, and all Cloudflare runtime secrets.
+
+
+## Simplified internal edition
+
+This release removes analytics, contacts, access-code workflows, browser-based duplicate restrictions, response reference numbers, and advanced text-field validation settings. The core workflow remains: build, optionally score, schedule, publish, collect, review, and export responses.
+
+
+### Simplified-edition database cleanup
+
+Existing installations should run `supabase/migrate-simplified-edition.sql` once. It removes the unused analytics table and the response-reference, browser-token, and access-code columns.
