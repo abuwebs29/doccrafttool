@@ -21,6 +21,7 @@ export type Question = {
   scaleMaxLabel?: string;
   matrixRows?: string[];
   matrixColumns?: string[];
+  includeInCount?: boolean;
 };
 
 export type FormSection = { id: string; title: string; description: string };
@@ -52,6 +53,8 @@ export type FormRecord = {
   headerImageUrl?: string;
   accentColor?: string;
   fontStyle?: "system" | "serif" | "rounded";
+  showScoreAfterSubmission?: boolean;
+  allowPdfDownload?: boolean;
   participantFieldQuestionId?: string | null;
   responseLimit?: number | null;
   oneResponsePerEmail?: boolean;

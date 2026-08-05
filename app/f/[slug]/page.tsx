@@ -14,11 +14,14 @@ import {
   Clock3,
   FileText,
   LoaderCircle,
+  Download,
+  Award,
   LockKeyhole,
   Sparkles,
 } from "lucide-react";
 
 type Answers = Record<string, AnswerValue>;
+type SubmissionResult = { submittedAt: string; totalScore: number; maxScore: number; responseId: string };
 
 export default function PublicFormPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -26,6 +29,7 @@ export default function PublicFormPage() {
   const [sectionIndex, setSectionIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [submitted, setSubmitted] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<SubmissionResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [website, setWebsite] = useState("");
@@ -58,7 +62,7 @@ export default function PublicFormPage() {
   if (form.linkExpiresAt && Date.now() >= new Date(form.linkExpiresAt).getTime()) {
     return <StateCard title="This link has expired" message="This participant link is no longer available." />;
   }
-  if (submitted) return <Success message={form.successMessage} redirectUrl={form.redirectUrl} accentColor={form.accentColor} />;
+  if (submitted && submissionResult) return <Success form={form} answers={answers} result={submissionResult} />;
 
   const activeForm = form;
   const accent = activeForm.accentColor || "#7c3aed";
@@ -68,7 +72,7 @@ export default function PublicFormPage() {
     ? activeForm.questions.filter((q) => q.sectionId === section.id)
     : activeForm.questions;
   const progress = multiStep ? ((sectionIndex + 1) / activeForm.sections.length) * 100 : 100;
-  const questionCount = activeForm.questions.length;
+  const questionCount = activeForm.questions.filter((question) => question.includeInCount !== false).length;
 
   function validateQuestions(questions: Question[]) {
     for (const question of questions) {
@@ -147,13 +151,15 @@ export default function PublicFormPage() {
     }
     setSubmitting(true);
     try {
+      const responseId = crypto.randomUUID();
       const response = await fetch("/api/responses/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: crypto.randomUUID(), formId: activeForm.id, answers, website, startedAt }),
+        body: JSON.stringify({ id: responseId, formId: activeForm.id, answers, website, startedAt }),
       });
-      const payload = (await response.json().catch(() => ({}))) as { error?: string };
+      const payload = (await response.json().catch(() => ({}))) as { error?: string; submittedAt?: string; totalScore?: number; maxScore?: number };
       if (!response.ok) throw new Error(payload.error || "Unable to submit your response.");
+      setSubmissionResult({ responseId, submittedAt: payload.submittedAt || new Date().toISOString(), totalScore: payload.totalScore ?? 0, maxScore: payload.maxScore ?? 0 });
       setSubmitted(true);
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "Unable to submit your response.");
@@ -508,23 +514,115 @@ function LoadingState() {
   );
 }
 
-function Success({ message, redirectUrl, accentColor }: { message?: string; redirectUrl?: string; accentColor?: string }) {
+function answerText(value: AnswerValue | undefined) {
+  if (Array.isArray(value)) return value.join(", ");
+  if (value && typeof value === "object") return Object.entries(value).map(([row, answer]) => `${row}: ${answer}`).join(" | ");
+  return String(value ?? "");
+}
+
+async function downloadResultPdf(form: FormRecord, answers: Answers, result: SubmissionResult) {
+  const { jsPDF } = await import("jspdf");
+  const pdf = new jsPDF({ unit: "pt", format: "a4" });
+  const pageWidth = pdf.internal.pageSize.getWidth();
+  const pageHeight = pdf.internal.pageSize.getHeight();
+  const margin = 48;
+  const contentWidth = pageWidth - margin * 2;
+  let y = 54;
+
+  const ensureSpace = (needed: number) => {
+    if (y + needed <= pageHeight - 48) return;
+    pdf.addPage();
+    y = 54;
+  };
+  const writeWrapped = (text: string, size = 10, weight: "normal" | "bold" = "normal", gap = 5) => {
+    pdf.setFont("helvetica", weight);
+    pdf.setFontSize(size);
+    const lines = pdf.splitTextToSize(text || "-", contentWidth);
+    ensureSpace(lines.length * (size + 3) + gap);
+    pdf.text(lines, margin, y);
+    y += lines.length * (size + 3) + gap;
+  };
+
+  pdf.setTextColor(15, 23, 42);
+  writeWrapped(form.title, 20, "bold", 10);
+  if (form.description) {
+    pdf.setTextColor(71, 85, 105);
+    writeWrapped(form.description, 10, "normal", 10);
+  }
+  pdf.setDrawColor(226, 232, 240);
+  pdf.line(margin, y, pageWidth - margin, y);
+  y += 22;
+  pdf.setTextColor(71, 85, 105);
+  writeWrapped(`Submitted: ${new Date(result.submittedAt).toLocaleString()}`, 10, "normal", 4);
+  writeWrapped(`Response ID: ${result.responseId}`, 10, "normal", 14);
+
+  if (result.maxScore > 0) {
+    ensureSpace(74);
+    pdf.setFillColor(245, 243, 255);
+    pdf.roundedRect(margin, y, contentWidth, 58, 10, 10, "F");
+    pdf.setTextColor(91, 33, 182);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(12);
+    pdf.text("Final score", margin + 16, y + 22);
+    pdf.setFontSize(20);
+    const percentage = Math.round((result.totalScore / result.maxScore) * 100);
+    pdf.text(`${result.totalScore} / ${result.maxScore}  (${percentage}%)`, margin + 16, y + 46);
+    y += 78;
+  }
+
+  pdf.setTextColor(15, 23, 42);
+  writeWrapped("Submitted answers", 14, "bold", 12);
+  form.questions.forEach((question, index) => {
+    ensureSpace(50);
+    pdf.setTextColor(15, 23, 42);
+    writeWrapped(`${index + 1}. ${question.title}`, 10, "bold", 3);
+    pdf.setTextColor(71, 85, 105);
+    writeWrapped(answerText(answers[question.id]) || "No answer", 10, "normal", 10);
+  });
+
+  pdf.setTextColor(148, 163, 184);
+  pdf.setFontSize(8);
+  pdf.text("Generated by FormFlow", margin, pageHeight - 24);
+  pdf.save(`${form.slug || "form"}-result.pdf`);
+}
+
+function Success({ form, answers, result }: { form: FormRecord; answers: Answers; result: SubmissionResult }) {
   useEffect(() => {
-    if (!redirectUrl) return;
+    if (!form.redirectUrl) return;
     const timer = window.setTimeout(() => {
-      window.location.href = redirectUrl;
-    }, 2500);
+      window.location.href = form.redirectUrl!;
+    }, 5000);
     return () => window.clearTimeout(timer);
-  }, [redirectUrl]);
+  }, [form.redirectUrl]);
+
+  const showScore = form.showScoreAfterSubmission !== false && result.maxScore > 0;
+  const percentage = result.maxScore > 0 ? Math.round((result.totalScore / result.maxScore) * 100) : 0;
 
   return (
-    <div className="public-state-shell" style={{ "--form-accent": accentColor || "#7c3aed" } as CSSProperties}>
-      <div className="public-state-card">
+    <div className="public-state-shell" style={{ "--form-accent": form.accentColor || "#7c3aed" } as CSSProperties}>
+      <div className="public-state-card max-w-xl">
         <div className="public-success-icon"><CheckCircle2 size={38} /></div>
         <p className="mt-7 text-xs font-bold uppercase tracking-[0.22em] text-[var(--form-accent)]">Complete</p>
         <h1 className="mt-2 text-3xl font-extrabold tracking-tight text-slate-950">Response submitted</h1>
-        <p className="mx-auto mt-4 max-w-md text-base leading-7 text-slate-600">{message || "Thank you. Your response has been recorded."}</p>
-        {redirectUrl && <p className="mt-6 text-sm font-medium text-slate-400">Redirecting you shortly…</p>}
+        <p className="mx-auto mt-2 max-w-lg text-lg font-semibold text-slate-800">{form.title}</p>
+        <p className="mx-auto mt-3 max-w-md text-base leading-7 text-slate-600">{form.successMessage || "Thank you. Your response has been recorded."}</p>
+
+        {showScore && (
+          <div className="mx-auto mt-7 max-w-sm rounded-3xl border border-violet-100 bg-violet-50/80 p-6">
+            <Award className="mx-auto text-violet-600" size={28} />
+            <p className="mt-3 text-xs font-bold uppercase tracking-[0.18em] text-violet-600">Your score</p>
+            <p className="mt-1 text-4xl font-extrabold tracking-tight text-slate-950">{result.totalScore} / {result.maxScore}</p>
+            <p className="mt-1 text-sm font-semibold text-slate-500">{percentage}%</p>
+          </div>
+        )}
+
+        <p className="mt-6 text-sm text-slate-500">Submitted {new Date(result.submittedAt).toLocaleString()}</p>
+        {form.allowPdfDownload !== false && (
+          <button type="button" className="public-form-button public-form-button-primary mx-auto mt-6" onClick={() => void downloadResultPdf(form, answers, result)}>
+            <Download size={18} /> Download PDF
+          </button>
+        )}
+        {form.redirectUrl && <p className="mt-5 text-sm font-medium text-slate-400">Redirecting you shortly…</p>}
       </div>
     </div>
   );

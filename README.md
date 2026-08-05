@@ -185,3 +185,8 @@ This release redesigns only the participant-facing shared form (`/f/[slug]`). It
 ## Likert matrix evaluation questions
 
 FormFlow now includes a **Likert matrix** question type for training evaluations and surveys. Administrators can define reusable statements as rows and rating choices as columns. Participants select one rating per statement on desktop or mobile, responses are securely stored with the rest of the form, and Excel exports create one column per matrix statement.
+
+
+## Submission results
+
+The public form title always uses the same form title shown in the admin dashboard. Each question can be included or excluded from the public question count. Forms can optionally show the numeric score after submission and allow participants to download a PDF result report.

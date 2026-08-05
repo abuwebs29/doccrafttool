@@ -11,7 +11,7 @@ export function normalizeForm(form: FormRecord): FormRecord {
     archived: form.archived ?? false,
     responseCount: form.responseCount ?? 0,
     sections,
-    questions: (form.questions ?? []).map((question) => ({ ...question, sectionId: question.sectionId ?? sections[0].id, description: question.description ?? "", minValue: question.minValue ?? null, maxValue: question.maxValue ?? null, minDate: question.minDate ?? null, maxDate: question.maxDate ?? null, scaleMin: question.scaleMin ?? 1, scaleMax: question.scaleMax ?? 5, scaleMinLabel: question.scaleMinLabel ?? "", scaleMaxLabel: question.scaleMaxLabel ?? "", matrixRows: question.matrixRows ?? [], matrixColumns: question.matrixColumns ?? [] })),
+    questions: (form.questions ?? []).map((question) => ({ ...question, sectionId: question.sectionId ?? sections[0].id, description: question.description ?? "", minValue: question.minValue ?? null, maxValue: question.maxValue ?? null, minDate: question.minDate ?? null, maxDate: question.maxDate ?? null, scaleMin: question.scaleMin ?? 1, scaleMax: question.scaleMax ?? 5, scaleMinLabel: question.scaleMinLabel ?? "", scaleMaxLabel: question.scaleMaxLabel ?? "", matrixRows: question.matrixRows ?? [], matrixColumns: question.matrixColumns ?? [], includeInCount: question.includeInCount ?? true })),
     logicRules: form.logicRules ?? [],
     branchingEnabled: form.branchingEnabled ?? Boolean(form.logicRules?.length),
     showProgress: form.showProgress ?? true,
@@ -27,6 +27,8 @@ export function normalizeForm(form: FormRecord): FormRecord {
     headerImageUrl: form.headerImageUrl ?? "",
     accentColor: form.accentColor ?? "#7c3aed",
     fontStyle: form.fontStyle ?? "system",
+    showScoreAfterSubmission: form.showScoreAfterSubmission ?? true,
+    allowPdfDownload: form.allowPdfDownload ?? true,
   };
 }
 
