@@ -89,3 +89,23 @@ Expected response:
 Sprint 6 adds individual response pages, search/sort/date filters, pagination, bulk deletion, selected-response export, reference numbers, response limits, and duplicate-submission controls.
 
 When upgrading an existing database, run `supabase/migrate-sprint-6.sql` once in the Supabase SQL Editor before testing new submissions.
+
+## Sprint 7 — controlled forms
+
+Sprint 7 keeps FormFlow focused on internal forms and adds:
+
+- Optional branching. New forms use normal sequential navigation by default.
+- One submission per email, browser, or access code.
+- Case-insensitive access-code lists.
+- Expiring participant links.
+- Maximum response limits.
+- Manual and scheduled opening/closing.
+- Server-side duplicate checks and answer validation.
+- Honeypot and rapid-submission spam protection.
+- Form cloning, archive, and restore from the dashboard.
+- Admin audit log at `/audit`.
+- Automatic response backup records in Supabase.
+
+### Upgrade an existing database
+
+Run `supabase/migrate-sprint-7.sql` once in the Supabase SQL Editor before accepting Sprint 7 responses.

@@ -32,6 +32,7 @@ export type FormRecord = {
   sections: FormSection[];
   questions: Question[];
   logicRules: LogicRule[];
+  branchingEnabled?: boolean;
   showProgress: boolean;
   scoringEnabled?: boolean;
   successMessage?: string;
@@ -39,6 +40,11 @@ export type FormRecord = {
   responseLimit?: number | null;
   oneResponsePerEmail?: boolean;
   oneResponsePerBrowser?: boolean;
+  oneResponsePerAccessCode?: boolean;
+  requireAccessCode?: boolean;
+  accessCodes?: string[];
+  linkExpiresAt?: string | null;
+  spamProtectionEnabled?: boolean;
   referencePrefix?: string;
   createdAt: string;
   updatedAt: string;

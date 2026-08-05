@@ -18,6 +18,9 @@ export default function PublicFormPage() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
+  const [accessCode, setAccessCode] = useState("");
+  const [website, setWebsite] = useState("");
+  const [startedAt] = useState(() => Date.now());
 
   useEffect(() => {
     let active = true;
@@ -34,6 +37,7 @@ export default function PublicFormPage() {
   if (status === "draft") return <StateCard title="This form is still a draft" message="The owner has not published it yet." />;
   if (status === "scheduled") return <StateCard title="This form is not open yet" message={form.beforeOpenMessage} date={form.opensAt} />;
   if (status === "closed") return <StateCard title="This form is closed" message={form.closedMessage} />;
+  if (form.linkExpiresAt && Date.now() >= new Date(form.linkExpiresAt).getTime()) return <StateCard title="This link has expired" message="This participant link is no longer available." />;
   if (submitted) return <Success message={form.successMessage} referenceNumber={referenceNumber} />;
 
   const activeForm = form;
@@ -48,6 +52,7 @@ export default function PublicFormPage() {
   }
 
   function resolveNext() {
+    if (!activeForm.branchingEnabled) return sectionIndex + 1;
     const matchingRule = activeForm.logicRules.find((rule) => {
       if (rule.sectionId !== section.id) return false;
       const answer = answers[rule.questionId];
@@ -69,12 +74,13 @@ export default function PublicFormPage() {
   async function finish(event?: FormEvent) {
     event?.preventDefault();
     if (!validateSection()) return;
+    if (activeForm.requireAccessCode && !accessCode.trim()) { setError("Please enter your access code."); return; }
     if (getEffectiveFormStatus(activeForm) !== "open") { window.location.reload(); return; }
     const score = calculateScore(activeForm, answers);
     try {
       let browserToken = localStorage.getItem("formflow.browser-token");
       if (!browserToken) { browserToken = crypto.randomUUID(); localStorage.setItem("formflow.browser-token", browserToken); }
-      const response = await fetch("/api/responses/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: crypto.randomUUID(), formId: activeForm.id, answers, browserToken }) });
+      const response = await fetch("/api/responses/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id: crypto.randomUUID(), formId: activeForm.id, answers, browserToken, accessCode, website, startedAt }) });
       const payload = await response.json().catch(() => ({})) as { error?: string; referenceNumber?: string };
       if (!response.ok) throw new Error(payload.error || "Unable to submit your response.");
       setReferenceNumber(payload.referenceNumber || "");
@@ -90,7 +96,7 @@ export default function PublicFormPage() {
         <div className="h-3 bg-violet-600"/>
         {activeForm.showProgress && <div className="h-1.5 bg-slate-100"><div className="h-full bg-violet-500 transition-all duration-300" style={{ width: `${progress}%` }}/></div>}
         <div className="border-b border-slate-100 p-7 sm:p-9"><div className="flex items-center justify-between gap-4"><span className="rounded-full bg-violet-50 px-3 py-1 text-xs font-bold text-violet-700">Step {sectionIndex + 1} of {activeForm.sections.length}</span><span className="text-xs font-medium text-slate-400">{Math.round(progress)}% complete</span></div><h1 className="mt-5 text-3xl font-bold tracking-tight">{activeForm.title}</h1>{activeForm.description && <p className="mt-3 leading-7 text-slate-600">{activeForm.description}</p>}</div>
-        <form onSubmit={finish} className="p-7 sm:p-9"><div className="rounded-2xl bg-slate-50 p-5"><p className="text-xs font-bold uppercase tracking-wider text-violet-600">Section {sectionIndex + 1}</p><h2 className="mt-1 text-xl font-bold">{section.title}</h2>{section.description && <p className="mt-1 text-sm text-slate-500">{section.description}</p>}</div><div className="mt-7 space-y-6">{questions.map((question) => <QuestionInput key={question.id} question={question} value={answers[question.id]} onChange={(value) => setAnswers((current) => ({ ...current, [question.id]: value }))}/>)}</div>{error && <p className="mt-6 rounded-xl bg-rose-50 p-3 text-sm font-medium text-rose-700">{error}</p>}<div className="mt-8 flex items-center justify-between gap-3">{sectionIndex > 0 ? <button type="button" className="btn-secondary" onClick={() => { setError(""); setSectionIndex((value) => value - 1); }}><ArrowLeft size={16} className="mr-2"/>Back</button> : <span/>}{sectionIndex === activeForm.sections.length - 1 ? <button className="btn-primary" type="submit">Submit response</button> : <button type="button" className="btn-primary" onClick={next}>Next<ArrowRight size={16} className="ml-2"/></button>}</div></form>
+        <form onSubmit={finish} className="p-7 sm:p-9">{activeForm.requireAccessCode && <div className="mb-6 rounded-2xl border border-violet-200 bg-violet-50 p-5"><label className="label">Access code <span className="text-rose-500">*</span></label><input className="field bg-white" value={accessCode} onChange={(e) => setAccessCode(e.target.value)} placeholder="Enter your access code" autoComplete="one-time-code"/></div>}<input className="hidden" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} name="website" aria-hidden="true"/><div className="rounded-2xl bg-slate-50 p-5"><p className="text-xs font-bold uppercase tracking-wider text-violet-600">Section {sectionIndex + 1}</p><h2 className="mt-1 text-xl font-bold">{section.title}</h2>{section.description && <p className="mt-1 text-sm text-slate-500">{section.description}</p>}</div><div className="mt-7 space-y-6">{questions.map((question) => <QuestionInput key={question.id} question={question} value={answers[question.id]} onChange={(value) => setAnswers((current) => ({ ...current, [question.id]: value }))}/>)}</div>{error && <p className="mt-6 rounded-xl bg-rose-50 p-3 text-sm font-medium text-rose-700">{error}</p>}<div className="mt-8 flex items-center justify-between gap-3">{sectionIndex > 0 ? <button type="button" className="btn-secondary" onClick={() => { setError(""); setSectionIndex((value) => value - 1); }}><ArrowLeft size={16} className="mr-2"/>Back</button> : <span/>}{sectionIndex === activeForm.sections.length - 1 ? <button className="btn-primary" type="submit">Submit response</button> : <button type="button" className="btn-primary" onClick={next}>Next<ArrowRight size={16} className="ml-2"/></button>}</div></form>
       </div>
     </div>
   </main>;

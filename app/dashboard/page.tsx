@@ -13,6 +13,7 @@ import {
   Copy,
   FileText,
   Grid2X2,
+  History,
   LayoutDashboard,
   List,
   MoreHorizontal,
@@ -166,6 +167,7 @@ export default function DashboardPage() {
           <p className="mb-2 mt-8 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Workspace</p>
           <nav className="space-y-1">
             <SidebarItem icon={Archive} label="Archived" onClick={() => setFilter("archived")} />
+            <Link href="/audit"><SidebarItem icon={History} label="Audit log" /></Link>
             <SidebarItem icon={Settings} label="Settings" badge="Soon" />
           </nav>
           <div className="mt-10 rounded-2xl bg-slate-950 p-4 text-white">

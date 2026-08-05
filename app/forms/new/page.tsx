@@ -12,7 +12,7 @@ export default function NewFormPage() {
     id: crypto.randomUUID(), title: "Untitled form", description: "", slug: `form-${Math.random().toString(36).slice(2, 8)}`,
     status: "draft", openMode: "now", closeMode: "never", opensAt: null, closesAt: null, timezone: "Asia/Dubai",
     beforeOpenMessage: "This form is not open yet.", closedMessage: "This form is no longer accepting responses.",
-    sections: [{ id: sectionId, title: "Section 1", description: "" }], questions: [], logicRules: [], showProgress: true,
+    sections: [{ id: sectionId, title: "Section 1", description: "" }], questions: [], logicRules: [], branchingEnabled: false, showProgress: true,
     createdAt: now, updatedAt: now
   };
   return <AdminGuard><FormEditor initialForm={initial} onSave={() => { router.push("/dashboard"); }} /></AdminGuard>;

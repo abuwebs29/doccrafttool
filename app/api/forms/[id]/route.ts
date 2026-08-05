@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { isAdminRequest } from "@/lib/require-admin";
 import { getSupabaseAdmin } from "@/lib/supabase-server";
+import { writeAudit } from "@/lib/audit";
 
 export async function GET(_request: Request, context: { params: Promise<{ id: string }> }) {
   if (!(await isAdminRequest())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -15,5 +16,6 @@ export async function DELETE(_request: Request, context: { params: Promise<{ id:
   const { id } = await context.params;
   const { error } = await getSupabaseAdmin().from("forms").delete().eq("id", id);
   if (error) return NextResponse.json({ error: error.message }, { status: 500 });
+  await writeAudit("form_deleted", id);
   return NextResponse.json({ ok: true });
 }

@@ -13,6 +13,7 @@ export function normalizeForm(form: FormRecord): FormRecord {
     sections,
     questions: (form.questions ?? []).map((question) => ({ ...question, sectionId: question.sectionId ?? sections[0].id })),
     logicRules: form.logicRules ?? [],
+    branchingEnabled: form.branchingEnabled ?? Boolean(form.logicRules?.length),
     showProgress: form.showProgress ?? true,
     scoringEnabled: form.scoringEnabled ?? true,
     successMessage: form.successMessage ?? "Thank you. Your response has been recorded.",
@@ -20,6 +21,11 @@ export function normalizeForm(form: FormRecord): FormRecord {
     responseLimit: form.responseLimit ?? null,
     oneResponsePerEmail: form.oneResponsePerEmail ?? false,
     oneResponsePerBrowser: form.oneResponsePerBrowser ?? false,
+    oneResponsePerAccessCode: form.oneResponsePerAccessCode ?? false,
+    requireAccessCode: form.requireAccessCode ?? false,
+    accessCodes: form.accessCodes ?? [],
+    linkExpiresAt: form.linkExpiresAt ?? null,
+    spamProtectionEnabled: form.spamProtectionEnabled ?? true,
     referencePrefix: form.referencePrefix ?? "FR",
   };
 }
