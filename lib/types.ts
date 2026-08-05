@@ -1,4 +1,4 @@
-export type QuestionType = "short_text" | "long_text" | "email" | "multiple_choice" | "checkboxes" | "dropdown";
+export type QuestionType = "short_text" | "long_text" | "email" | "url" | "number" | "date" | "time" | "rating" | "linear_scale" | "acknowledgment" | "multiple_choice" | "checkboxes" | "dropdown";
 
 export type Question = {
   id: string;
@@ -10,6 +10,19 @@ export type Question = {
   scoreEnabled?: boolean;
   points?: number;
   correctAnswers?: string[];
+  description?: string;
+  placeholder?: string;
+  minLength?: number | null;
+  maxLength?: number | null;
+  minValue?: number | null;
+  maxValue?: number | null;
+  minDate?: string | null;
+  maxDate?: string | null;
+  customError?: string;
+  scaleMin?: number;
+  scaleMax?: number;
+  scaleMinLabel?: string;
+  scaleMaxLabel?: string;
 };
 
 export type FormSection = { id: string; title: string; description: string };
@@ -36,6 +49,11 @@ export type FormRecord = {
   showProgress: boolean;
   scoringEnabled?: boolean;
   successMessage?: string;
+  redirectUrl?: string;
+  logoUrl?: string;
+  headerImageUrl?: string;
+  accentColor?: string;
+  fontStyle?: "system" | "serif" | "rounded";
   participantFieldQuestionId?: string | null;
   responseLimit?: number | null;
   oneResponsePerEmail?: boolean;

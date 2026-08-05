@@ -11,7 +11,7 @@ export function normalizeForm(form: FormRecord): FormRecord {
     archived: form.archived ?? false,
     responseCount: form.responseCount ?? 0,
     sections,
-    questions: (form.questions ?? []).map((question) => ({ ...question, sectionId: question.sectionId ?? sections[0].id })),
+    questions: (form.questions ?? []).map((question) => ({ ...question, sectionId: question.sectionId ?? sections[0].id, description: question.description ?? "", placeholder: question.placeholder ?? "", minLength: question.minLength ?? null, maxLength: question.maxLength ?? null, minValue: question.minValue ?? null, maxValue: question.maxValue ?? null, minDate: question.minDate ?? null, maxDate: question.maxDate ?? null, customError: question.customError ?? "", scaleMin: question.scaleMin ?? 1, scaleMax: question.scaleMax ?? 5, scaleMinLabel: question.scaleMinLabel ?? "", scaleMaxLabel: question.scaleMaxLabel ?? "" })),
     logicRules: form.logicRules ?? [],
     branchingEnabled: form.branchingEnabled ?? Boolean(form.logicRules?.length),
     showProgress: form.showProgress ?? true,
@@ -27,6 +27,11 @@ export function normalizeForm(form: FormRecord): FormRecord {
     linkExpiresAt: form.linkExpiresAt ?? null,
     spamProtectionEnabled: form.spamProtectionEnabled ?? true,
     referencePrefix: form.referencePrefix ?? "FR",
+    redirectUrl: form.redirectUrl ?? "",
+    logoUrl: form.logoUrl ?? "",
+    headerImageUrl: form.headerImageUrl ?? "",
+    accentColor: form.accentColor ?? "#7c3aed",
+    fontStyle: form.fontStyle ?? "system",
   };
 }
 

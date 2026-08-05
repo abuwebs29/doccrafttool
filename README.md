@@ -121,3 +121,7 @@ Run `supabase/migrate-sprint-7.sql` once in the Supabase SQL Editor before accep
 - Search and manage reusable questions at `/templates`.
 
 Templates and question-bank items are stored in the admin browser for this internal single-admin deployment. Forms created from templates are saved to Supabase normally.
+
+## Sprint 9 additions
+
+Sprint 9 adds question help text, placeholders, character and number limits, date restrictions, URL/number/date/time/rating/linear-scale/acknowledgment questions, custom validation messages, publish-time checks, unsaved-change warnings, branding controls, and optional post-submission redirects. No database migration is required because these settings are stored inside each form's JSON data.

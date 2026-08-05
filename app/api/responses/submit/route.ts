@@ -11,9 +11,17 @@ function validAnswer(question: Question, value: AnswerValue | undefined) {
   if (question.required && !hasAnswer(value)) return false;
   if (!hasAnswer(value)) return true;
   if (question.type === "email") return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  if (question.type === "url") { if (typeof value !== "string") return false; try { new URL(value); } catch { return false; } }
   if (["multiple_choice", "dropdown"].includes(question.type)) return typeof value === "string" && (question.options ?? []).includes(value);
   if (question.type === "checkboxes") return Array.isArray(value) && value.every((item) => (question.options ?? []).includes(item));
-  return typeof value === "string" && value.length <= 10000;
+  if (question.type === "acknowledgment") return typeof value === "string" && value === "Yes";
+  if (["rating", "linear_scale"].includes(question.type)) { const number = Number(value); return typeof value === "string" && Number.isInteger(number) && number >= (question.scaleMin ?? 1) && number <= (question.scaleMax ?? 5); }
+  if (question.type === "number") { const number = Number(value); return typeof value === "string" && Number.isFinite(number) && (question.minValue == null || number >= question.minValue) && (question.maxValue == null || number <= question.maxValue); }
+  if (question.type === "date") return typeof value === "string" && (!question.minDate || value >= question.minDate) && (!question.maxDate || value <= question.maxDate);
+  if (typeof value !== "string" || value.length > 10000) return false;
+  if (question.minLength != null && value.length < question.minLength) return false;
+  if (question.maxLength != null && value.length > question.maxLength) return false;
+  return true;
 }
 
 export async function POST(request: Request) {
@@ -35,7 +43,7 @@ export async function POST(request: Request) {
     const allowedQuestionIds = new Set(form.questions.map((question) => question.id));
     if (Object.keys(body.answers).some((id) => !allowedQuestionIds.has(id))) return NextResponse.json({ error: "Unexpected answer data." }, { status: 400 });
     const invalid = form.questions.find((question) => !validAnswer(question, body.answers![question.id]));
-    if (invalid) return NextResponse.json({ error: `Please provide a valid answer for “${invalid.title}”.` }, { status: 400 });
+    if (invalid) return NextResponse.json({ error: invalid.customError || `Please provide a valid answer for “${invalid.title}”.` }, { status: 400 });
 
     const accessCode = normalizeCode(body.accessCode);
     const allowedCodes = (form.accessCodes ?? []).map(normalizeCode).filter(Boolean);
