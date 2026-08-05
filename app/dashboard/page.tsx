@@ -167,7 +167,8 @@ export default function DashboardPage() {
           <p className="mb-2 mt-8 px-3 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400">Workspace</p>
           <nav className="space-y-1">
             <SidebarItem icon={Archive} label="Archived" onClick={() => setFilter("archived")} />
-            <Link href="/audit"><SidebarItem icon={History} label="Audit log" /></Link>
+            <Link href="/templates" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"><Sparkles size={18}/>Templates</Link>
+          <Link href="/audit"><SidebarItem icon={History} label="Audit log" /></Link>
             <SidebarItem icon={Settings} label="Settings" badge="Soon" />
           </nav>
           <div className="mt-10 rounded-2xl bg-slate-950 p-4 text-white">

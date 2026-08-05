@@ -109,3 +109,15 @@ Sprint 7 keeps FormFlow focused on internal forms and adds:
 ### Upgrade an existing database
 
 Run `supabase/migrate-sprint-7.sql` once in the Supabase SQL Editor before accepting Sprint 7 responses.
+
+## Sprint 7.1 and Sprint 8
+
+- Branching disabled: respondents see all sections and questions on one continuous page.
+- Branching enabled: respondents use the section-by-section flow with Next, Back, and branch rules.
+- Save any form as a reusable template from the builder.
+- Create a new draft form from a template at `/templates`.
+- Archive, restore, search, and delete templates.
+- Save individual questions to the reusable question bank.
+- Search and manage reusable questions at `/templates`.
+
+Templates and question-bank items are stored in the admin browser for this internal single-admin deployment. Forms created from templates are saved to Supabase normally.
