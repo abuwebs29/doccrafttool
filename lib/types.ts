@@ -1,4 +1,4 @@
-export type QuestionType = "short_text" | "long_text" | "email" | "url" | "number" | "date" | "time" | "rating" | "linear_scale" | "acknowledgment" | "multiple_choice" | "checkboxes" | "dropdown";
+export type QuestionType = "short_text" | "long_text" | "email" | "url" | "number" | "date" | "time" | "rating" | "linear_scale" | "acknowledgment" | "likert_matrix" | "multiple_choice" | "checkboxes" | "dropdown";
 
 export type Question = {
   id: string;
@@ -19,6 +19,8 @@ export type Question = {
   scaleMax?: number;
   scaleMinLabel?: string;
   scaleMaxLabel?: string;
+  matrixRows?: string[];
+  matrixColumns?: string[];
 };
 
 export type FormSection = { id: string; title: string; description: string };
@@ -61,7 +63,7 @@ export type FormRecord = {
   responseCount?: number;
 };
 
-export type AnswerValue = string | string[];
+export type AnswerValue = string | string[] | Record<string, string>;
 export type FormResponse = {
   id: string;
   formId: string;

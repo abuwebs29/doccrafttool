@@ -181,3 +181,7 @@ This release fixes response listing after the simplified-edition migration remov
 ## FormFlow UI 2.0
 
 This release redesigns only the participant-facing shared form (`/f/[slug]`). It does not change form logic, scheduling, scoring, response saving, branching, validation, or admin functionality.
+
+## Likert matrix evaluation questions
+
+FormFlow now includes a **Likert matrix** question type for training evaluations and surveys. Administrators can define reusable statements as rows and rating choices as columns. Participants select one rating per statement on desktop or mobile, responses are securely stored with the rest of the form, and Excel exports create one column per matrix statement.

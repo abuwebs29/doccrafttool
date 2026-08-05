@@ -11,7 +11,7 @@ export function normalizeForm(form: FormRecord): FormRecord {
     archived: form.archived ?? false,
     responseCount: form.responseCount ?? 0,
     sections,
-    questions: (form.questions ?? []).map((question) => ({ ...question, sectionId: question.sectionId ?? sections[0].id, description: question.description ?? "", minValue: question.minValue ?? null, maxValue: question.maxValue ?? null, minDate: question.minDate ?? null, maxDate: question.maxDate ?? null, scaleMin: question.scaleMin ?? 1, scaleMax: question.scaleMax ?? 5, scaleMinLabel: question.scaleMinLabel ?? "", scaleMaxLabel: question.scaleMaxLabel ?? "" })),
+    questions: (form.questions ?? []).map((question) => ({ ...question, sectionId: question.sectionId ?? sections[0].id, description: question.description ?? "", minValue: question.minValue ?? null, maxValue: question.maxValue ?? null, minDate: question.minDate ?? null, maxDate: question.maxDate ?? null, scaleMin: question.scaleMin ?? 1, scaleMax: question.scaleMax ?? 5, scaleMinLabel: question.scaleMinLabel ?? "", scaleMaxLabel: question.scaleMaxLabel ?? "", matrixRows: question.matrixRows ?? [], matrixColumns: question.matrixColumns ?? [] })),
     logicRules: form.logicRules ?? [],
     branchingEnabled: form.branchingEnabled ?? Boolean(form.logicRules?.length),
     showProgress: form.showProgress ?? true,
@@ -63,7 +63,7 @@ export function duplicateForm(id: string): FormRecord | undefined {
     id: crypto.randomUUID(), title: `${source.title} copy`, slug: `${source.slug}-copy-${Math.random().toString(36).slice(2, 6)}`,
     status: "draft", archived: false, responseCount: 0, createdAt: now, updatedAt: now,
     sections: source.sections.map((section) => ({ ...section, id: sectionMap.get(section.id)! })),
-    questions: source.questions.map((question) => ({ ...question, id: questionMap.get(question.id)!, sectionId: sectionMap.get(question.sectionId)!, options: question.options ? [...question.options] : undefined })),
+    questions: source.questions.map((question) => ({ ...question, id: questionMap.get(question.id)!, sectionId: sectionMap.get(question.sectionId)!, options: question.options ? [...question.options] : undefined, matrixRows: question.matrixRows ? [...question.matrixRows] : undefined, matrixColumns: question.matrixColumns ? [...question.matrixColumns] : undefined })),
     logicRules: source.logicRules.map((rule) => ({ ...rule, id: crypto.randomUUID(), sectionId: sectionMap.get(rule.sectionId)!, questionId: questionMap.get(rule.questionId)!, targetSectionId: rule.targetSectionId ? sectionMap.get(rule.targetSectionId) : undefined })),
   };
   void saveForm(copy).catch((error) => console.error("Form sync failed", error)); return copy;

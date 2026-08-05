@@ -5,7 +5,7 @@ import { CSSProperties, FormEvent, useEffect, useId, useState } from "react";
 import { getForm } from "@/lib/demo-store";
 import { getRemoteForm } from "@/lib/remote-store";
 import { getEffectiveFormStatus } from "@/lib/form-status";
-import type { FormRecord, Question } from "@/lib/types";
+import type { AnswerValue, FormRecord, Question } from "@/lib/types";
 import {
   ArrowLeft,
   ArrowRight,
@@ -18,7 +18,7 @@ import {
   Sparkles,
 } from "lucide-react";
 
-type Answers = Record<string, string | string[]>;
+type Answers = Record<string, AnswerValue>;
 
 export default function PublicFormPage() {
   const { slug } = useParams<{ slug: string }>();
@@ -45,7 +45,7 @@ export default function PublicFormPage() {
     };
   }, [slug]);
 
-  function updateAnswer(questionId: string, value: string | string[]) {
+  function updateAnswer(questionId: string, value: AnswerValue) {
     setAnswers((current) => ({ ...current, [questionId]: value }));
     if (error) setError("");
   }
@@ -73,7 +73,16 @@ export default function PublicFormPage() {
   function validateQuestions(questions: Question[]) {
     for (const question of questions) {
       const value = answers[question.id];
-      const empty = !value || (Array.isArray(value) && !value.length) || (!Array.isArray(value) && !String(value).trim());
+      if (question.type === "likert_matrix") {
+        const matrix = isMatrixAnswer(value) ? value : {};
+        const rows = (question.matrixRows ?? []).filter((row) => row.trim());
+        if (question.required && rows.some((row) => !matrix[row])) {
+          setError(`Please rate every statement in “${question.title}” before continuing.`);
+          return false;
+        }
+        continue;
+      }
+      const empty = !value || (Array.isArray(value) && !value.length) || (typeof value === "string" && !value.trim());
       if (question.required && empty) {
         setError(`Please answer “${question.title}” before continuing.`);
         return false;
@@ -335,8 +344,8 @@ function QuestionInput({
 }: {
   question: Question;
   number: number;
-  value: string | string[] | undefined;
-  onChange: (value: string | string[]) => void;
+  value: AnswerValue | undefined;
+  onChange: (value: AnswerValue) => void;
 }) {
   const min = question.scaleMin ?? 1;
   const max = question.scaleMax ?? 5;
@@ -354,12 +363,14 @@ function QuestionInput({
               {question.title}
               {question.required && <span className="ml-1 text-rose-500" aria-label="required">*</span>}
             </label>
-            {question.required && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">Required</span>}
+            <div className="flex flex-wrap gap-2">{question.scoreEnabled && (question.points ?? 0) > 0 && <span className="rounded-full bg-violet-50 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-violet-700">{question.points} {question.points === 1 ? "point" : "points"}</span>}{question.required && <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-500">Required</span>}</div>
           </div>
 
           <div className="mt-5">
             {question.type === "long_text" ? (
               <textarea id={inputId} className="public-form-field min-h-36 resize-y" rows={5} value={String(value ?? "")} onChange={(e) => onChange(e.target.value)} />
+            ) : question.type === "likert_matrix" ? (
+              <LikertMatrix question={question} value={isMatrixAnswer(value) ? value : {}} onChange={onChange} />
             ) : question.type === "multiple_choice" ? (
               <div className="space-y-2.5">
                 {(question.options ?? []).map((option) => (
@@ -444,6 +455,20 @@ function QuestionInput({
       </div>
     </div>
   );
+}
+
+function isMatrixAnswer(value: AnswerValue | undefined): value is Record<string, string> {
+  return Boolean(value) && !Array.isArray(value) && typeof value === "object";
+}
+
+function LikertMatrix({ question, value, onChange }: { question: Question; value: Record<string, string>; onChange: (value: AnswerValue) => void }) {
+  const rows = (question.matrixRows ?? []).filter((row) => row.trim());
+  const columns = (question.matrixColumns ?? []).filter((column) => column.trim());
+  function choose(row: string, column: string) { onChange({ ...value, [row]: column }); }
+  return <div>
+    <div className="hidden overflow-x-auto rounded-2xl border border-slate-200 md:block"><table className="w-full min-w-[700px] border-collapse"><thead><tr className="bg-slate-50"><th className="w-[38%] px-4 py-4 text-left text-xs font-bold uppercase tracking-wider text-slate-500">Statement</th>{columns.map((column) => <th key={column} className="px-3 py-4 text-center text-xs font-bold text-slate-600">{column}</th>)}</tr></thead><tbody>{rows.map((row, rowIndex) => <tr key={row} className={rowIndex % 2 ? "bg-white" : "bg-slate-50/50"}><th scope="row" className="border-t border-slate-100 px-4 py-4 text-left text-sm font-medium leading-6 text-slate-700">{row}</th>{columns.map((column) => { const selected = value[row] === column; return <td key={column} className="border-t border-slate-100 px-3 py-4 text-center"><label className="inline-grid cursor-pointer place-items-center"><input className="sr-only" type="radio" name={`${question.id}-${row}`} checked={selected} onChange={() => choose(row, column)}/><span className={`grid h-10 w-10 place-items-center rounded-full border-2 transition ${selected ? "border-[var(--form-accent)] bg-[var(--form-accent)] text-white shadow-md" : "border-slate-300 bg-white hover:border-[var(--form-accent)]"}`}>{selected && <Check size={17}/>}</span><span className="sr-only">{column}</span></label></td>; })}</tr>)}</tbody></table></div>
+    <div className="space-y-3 md:hidden">{rows.map((row, index) => <fieldset key={row} className="rounded-2xl border border-slate-200 bg-slate-50/60 p-4"><legend className="px-1 text-sm font-semibold leading-6 text-slate-800">{index + 1}. {row}</legend><div className="mt-3 grid gap-2">{columns.map((column) => <ChoiceOption key={column} type="radio" name={`${question.id}-${index}`} option={column} selected={value[row] === column} onChange={() => choose(row, column)}/>)}</div></fieldset>)}</div>
+  </div>;
 }
 
 function ChoiceOption({

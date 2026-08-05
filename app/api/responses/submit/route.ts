@@ -6,10 +6,18 @@ import { getSystemSettings } from "@/lib/system-settings";
 import type { AnswerValue, FormRecord, Question } from "@/lib/types";
 import { checkRateLimit, clientKey, isSameOrigin, rateLimitResponse, safeErrorId } from "@/lib/security";
 
-function hasAnswer(value: AnswerValue | undefined) { return Array.isArray(value) ? value.length > 0 : typeof value === "string" && value.trim().length > 0; }
+function hasAnswer(value: AnswerValue | undefined) { if (Array.isArray(value)) return value.length > 0; if (typeof value === "string") return value.trim().length > 0; return Boolean(value) && typeof value === "object" && Object.keys(value).length > 0; }
 function validAnswer(question: Question, value: AnswerValue | undefined) {
   if (question.required && !hasAnswer(value)) return false;
   if (!hasAnswer(value)) return true;
+  if (question.type === "likert_matrix") {
+    if (!value || Array.isArray(value) || typeof value !== "object") return false;
+    const rows = (question.matrixRows ?? []).filter((row) => row.trim());
+    const columns = new Set((question.matrixColumns ?? []).filter((column) => column.trim()));
+    const answer = value as Record<string, string>;
+    if (question.required && rows.some((row) => !answer[row])) return false;
+    return Object.entries(answer).every(([row, column]) => rows.includes(row) && columns.has(column));
+  }
   if (question.type === "email") return typeof value === "string" && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
   if (question.type === "url") { if (typeof value !== "string") return false; try { new URL(value); } catch { return false; } }
   if (["multiple_choice", "dropdown"].includes(question.type)) return typeof value === "string" && (question.options ?? []).includes(value);

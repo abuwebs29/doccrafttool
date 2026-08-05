@@ -61,7 +61,11 @@ export default function ResponsesPage() {
       };
       for (const question of activeForm.questions) {
         const value = response.answers[question.id];
-        row[question.title] = Array.isArray(value) ? value.join(", ") : String(value ?? "");
+        if (question.type === "likert_matrix" && value && !Array.isArray(value) && typeof value === "object") {
+          for (const matrixRow of question.matrixRows ?? []) row[`${question.title} — ${matrixRow}`] = value[matrixRow] ?? "";
+        } else {
+          row[question.title] = Array.isArray(value) ? value.join(", ") : typeof value === "string" ? value : "";
+        }
       }
       row["Total Score"] = response.totalScore;
       row["Maximum Score"] = response.maxScore;
@@ -103,7 +107,7 @@ export default function ResponsesPage() {
   </div></main></AdminGuard>;
 }
 
-function participantName(form: FormRecord, response: FormResponse) { const selected = form.participantFieldQuestionId ? form.questions.find((q) => q.id === form.participantFieldQuestionId) : undefined; const question = selected ?? form.questions.find((q) => /name|email/i.test(q.title)); const value = question ? response.answers[question.id] : undefined; return Array.isArray(value) ? value.join(", ") : String(value || `Response ${response.id.slice(0, 8)}`); }
+function participantName(form: FormRecord, response: FormResponse) { const selected = form.participantFieldQuestionId ? form.questions.find((q) => q.id === form.participantFieldQuestionId) : undefined; const question = selected ?? form.questions.find((q) => /name|email/i.test(q.title)); const value = question ? response.answers[question.id] : undefined; return Array.isArray(value) ? value.join(", ") : typeof value === "string" ? value || `Response ${response.id.slice(0, 8)}` : `Response ${response.id.slice(0, 8)}`; }
 function average(items: FormResponse[]) { const scored = items.filter((response) => response.maxScore > 0); return scored.length ? Number((scored.reduce((sum, response) => sum + response.totalScore, 0) / scored.length).toFixed(1)) : 0; }
 function highest(items: FormResponse[]) { return items.reduce((maximum, response) => Math.max(maximum, response.totalScore), 0); }
 function Stat({ label, value }: { label: string; value: number }) { return <div className="card p-5"><p className="text-sm text-slate-500">{label}</p><p className="mt-2 text-3xl font-bold">{value}</p></div>; }

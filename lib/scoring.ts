@@ -1,5 +1,5 @@
 import type { AnswerValue, FormRecord, Question } from "./types";
-function normalize(value: AnswerValue | undefined) { return Array.isArray(value) ? [...value].sort().map((item) => item.trim().toLowerCase()) : [String(value ?? "").trim().toLowerCase()]; }
+function normalize(value: AnswerValue | undefined) { if (Array.isArray(value)) return [...value].sort().map((item) => item.trim().toLowerCase()); if (typeof value === "string") return [value.trim().toLowerCase()]; return []; }
 function questionScore(question: Question, answer: AnswerValue | undefined) {
   if (!question.scoreEnabled || !question.points) return 0;
   const expected = normalize(question.correctAnswers ?? []);
