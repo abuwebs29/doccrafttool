@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getEffectiveFormStatus } from "@/lib/form-status";
 import { calculateScore } from "@/lib/scoring";
 import { getSupabaseAdmin } from "@/lib/supabase-server";
+import { classifyClient } from "@/lib/analytics";
 import type { AnswerValue, FormRecord, Question } from "@/lib/types";
 
 function normalizeCode(value?: string) { return (value ?? "").trim().toUpperCase(); }
@@ -26,7 +27,7 @@ function validAnswer(question: Question, value: AnswerValue | undefined) {
 
 export async function POST(request: Request) {
   try {
-    const body = await request.json() as { id?: string; formId?: string; answers?: Record<string, AnswerValue>; browserToken?: string; accessCode?: string; website?: string; startedAt?: number };
+    const body = await request.json() as { id?: string; formId?: string; answers?: Record<string, AnswerValue>; browserToken?: string; accessCode?: string; website?: string; startedAt?: number; sessionId?: string };
     if (!body.id || !body.formId || !body.answers) return NextResponse.json({ error: "Invalid response." }, { status: 400 });
     const supabase = getSupabaseAdmin();
     const { data, error } = await supabase.from("forms").select("data,status").eq("id", body.formId).maybeSingle();
@@ -86,6 +87,20 @@ export async function POST(request: Request) {
     const { error: insertError } = await supabase.from("form_responses").insert(responseRow);
     if (insertError) return NextResponse.json({ error: insertError.message }, { status: 500 });
     await supabase.from("response_backups").insert({ response_id: body.id, form_id: body.formId, payload: responseRow }).then(() => undefined);
+    if (body.sessionId) {
+      const userAgent = request.headers.get("user-agent") ?? "";
+      const { deviceType, browserName } = classifyClient(userAgent);
+      await supabase.from("form_analytics_events").upsert({
+        form_id: body.formId,
+        session_id: body.sessionId,
+        event_type: "complete",
+        duration_ms: body.startedAt ? Math.max(0, Math.min(86_400_000, Date.now() - body.startedAt)) : null,
+        device_type: deviceType,
+        browser_name: browserName,
+        country_code: (request.headers.get("cf-ipcountry") || "Unknown").slice(0, 8),
+        metadata: { responseId: body.id },
+      }, { onConflict: "form_id,session_id,event_type", ignoreDuplicates: true }).then(() => undefined);
+    }
     return NextResponse.json({ ok: true, submittedAt, totalScore, maxScore, referenceNumber });
   } catch (error) {
     console.error("Response submission failed", error);

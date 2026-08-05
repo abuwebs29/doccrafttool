@@ -1,6 +1,6 @@
 "use client";
 import { useParams } from "next/navigation";
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { getForm } from "@/lib/demo-store";
 import { getRemoteForm } from "@/lib/remote-store";
 import { getEffectiveFormStatus } from "@/lib/form-status";
@@ -20,6 +20,9 @@ export default function PublicFormPage() {
   const [accessCode, setAccessCode] = useState("");
   const [website, setWebsite] = useState("");
   const [startedAt] = useState(() => Date.now());
+  const [analyticsSessionId] = useState(() => typeof crypto !== "undefined" ? crypto.randomUUID() : `${Date.now()}-${Math.random()}`);
+  const startedTracked = useRef(false);
+  const submittedRef = useRef(false);
 
   useEffect(() => {
     let active = true;
@@ -31,6 +34,37 @@ export default function PublicFormPage() {
     const timer = setInterval(load, 30000);
     return () => { active = false; clearInterval(timer); };
   }, [slug]);
+
+  useEffect(() => {
+    if (!form || form.status !== "published") return;
+    void fetch("/api/analytics/track", {
+      method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true,
+      body: JSON.stringify({ formId: form.id, sessionId: analyticsSessionId, eventType: "view" }),
+    });
+  }, [form?.id, form?.status, analyticsSessionId]);
+
+  useEffect(() => {
+    if (!form) return;
+    const abandon = () => {
+      if (!startedTracked.current || submittedRef.current) return;
+      const payload = JSON.stringify({ formId: form.id, sessionId: analyticsSessionId, eventType: "abandon", durationMs: Date.now() - startedAt, sectionIndex });
+      if (navigator.sendBeacon) navigator.sendBeacon("/api/analytics/track", new Blob([payload], { type: "application/json" }));
+      else void fetch("/api/analytics/track", { method: "POST", headers: { "Content-Type": "application/json" }, body: payload, keepalive: true });
+    };
+    window.addEventListener("pagehide", abandon);
+    return () => window.removeEventListener("pagehide", abandon);
+  }, [form?.id, analyticsSessionId, startedAt, sectionIndex]);
+
+  function updateAnswer(questionId: string, value: string | string[]) {
+    setAnswers((current) => ({ ...current, [questionId]: value }));
+    if (!startedTracked.current && form) {
+      startedTracked.current = true;
+      void fetch("/api/analytics/track", {
+        method: "POST", headers: { "Content-Type": "application/json" }, keepalive: true,
+        body: JSON.stringify({ formId: form.id, sessionId: analyticsSessionId, eventType: "start", sectionIndex }),
+      });
+    }
+  }
 
   if (!form) return <div className="mx-auto max-w-xl p-10 text-center">Form not found.</div>;
   const status = getEffectiveFormStatus(form);
@@ -97,11 +131,12 @@ export default function PublicFormPage() {
       const response = await fetch("/api/responses/submit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id: crypto.randomUUID(), formId: activeForm.id, answers, browserToken, accessCode, website, startedAt }),
+        body: JSON.stringify({ id: crypto.randomUUID(), formId: activeForm.id, answers, browserToken, accessCode, website, startedAt, sessionId: analyticsSessionId }),
       });
       const payload = await response.json().catch(() => ({})) as { error?: string; referenceNumber?: string };
       if (!response.ok) throw new Error(payload.error || "Unable to submit your response.");
       setReferenceNumber(payload.referenceNumber || "");
+      submittedRef.current = true;
       setSubmitted(true);
     } catch (submissionError) {
       setError(submissionError instanceof Error ? submissionError.message : "Unable to submit your response.");
@@ -124,13 +159,13 @@ export default function PublicFormPage() {
           <input className="hidden" tabIndex={-1} autoComplete="off" value={website} onChange={(e) => setWebsite(e.target.value)} name="website" aria-hidden="true"/>
           {multiStep ? <>
             <div className="rounded-2xl bg-slate-50 p-5"><p className="text-xs font-bold uppercase tracking-wider text-violet-600">Section {sectionIndex + 1}</p><h2 className="mt-1 text-xl font-bold">{section.title}</h2>{section.description && <p className="mt-1 text-sm text-slate-500">{section.description}</p>}</div>
-            <div className="mt-7 space-y-6">{visibleQuestions.map((question) => <QuestionInput key={question.id} question={question} value={answers[question.id]} onChange={(value) => setAnswers((current) => ({ ...current, [question.id]: value }))}/>)}</div>
+            <div className="mt-7 space-y-6">{visibleQuestions.map((question) => <QuestionInput key={question.id} question={question} value={answers[question.id]} onChange={(value) => updateAnswer(question.id, value)}/>)}</div>
           </> : <div className="space-y-8">{activeForm.sections.map((item, index) => {
             const sectionQuestions = activeForm.questions.filter((question) => question.sectionId === item.id);
             if (!sectionQuestions.length) return null;
             return <section key={item.id} className="space-y-6">
               {(activeForm.sections.length > 1 || item.title || item.description) && <div className="rounded-2xl bg-slate-50 p-5"><p className="text-xs font-bold uppercase tracking-wider text-violet-600">Section {index + 1}</p><h2 className="mt-1 text-xl font-bold">{item.title}</h2>{item.description && <p className="mt-1 text-sm text-slate-500">{item.description}</p>}</div>}
-              {sectionQuestions.map((question) => <QuestionInput key={question.id} question={question} value={answers[question.id]} onChange={(value) => setAnswers((current) => ({ ...current, [question.id]: value }))}/>)}
+              {sectionQuestions.map((question) => <QuestionInput key={question.id} question={question} value={answers[question.id]} onChange={(value) => updateAnswer(question.id, value)}/>)}
             </section>;
           })}</div>}
           {error && <p className="mt-6 rounded-xl bg-rose-50 p-3 text-sm font-medium text-rose-700">{error}</p>}
