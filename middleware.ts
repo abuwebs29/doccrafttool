@@ -9,4 +9,4 @@ export async function middleware(request: NextRequest) {
   return NextResponse.redirect(login);
 }
 
-export const config = { matcher: ["/dashboard/:path*", "/forms/:path*"] };
+export const config = { matcher: ["/dashboard/:path*", "/forms/:path*", "/settings/:path*", "/system/:path*", "/audit/:path*", "/templates/:path*"] };

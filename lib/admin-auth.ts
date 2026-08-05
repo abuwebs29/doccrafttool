@@ -1,5 +1,5 @@
 const COOKIE_NAME = "formflow_admin_session";
-const MAX_AGE_SECONDS = 60 * 60 * 12;
+const MAX_AGE_SECONDS = 60 * 60 * Math.max(1, Math.min(168, Number(process.env.ADMIN_SESSION_HOURS || 12)));
 
 export { COOKIE_NAME, MAX_AGE_SECONDS };
 

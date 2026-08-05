@@ -4,6 +4,7 @@ import { getEffectiveFormStatus } from "@/lib/form-status";
 import { calculateScore } from "@/lib/scoring";
 import { getSupabaseAdmin } from "@/lib/supabase-server";
 import { classifyClient } from "@/lib/analytics";
+import { getSystemSettings } from "@/lib/system-settings";
 import type { AnswerValue, FormRecord, Question } from "@/lib/types";
 
 function normalizeCode(value?: string) { return (value ?? "").trim().toUpperCase(); }
@@ -27,6 +28,8 @@ function validAnswer(question: Question, value: AnswerValue | undefined) {
 
 export async function POST(request: Request) {
   try {
+    const settings = await getSystemSettings();
+    if (settings.maintenanceMode || settings.readOnlyMode) return NextResponse.json({ error: settings.maintenanceMode ? "Forms are temporarily unavailable for maintenance." : "The system is currently read-only." }, { status: 503 });
     const body = await request.json() as { id?: string; formId?: string; answers?: Record<string, AnswerValue>; browserToken?: string; accessCode?: string; website?: string; startedAt?: number; sessionId?: string };
     if (!body.id || !body.formId || !body.answers) return NextResponse.json({ error: "Invalid response." }, { status: 400 });
     const supabase = getSupabaseAdmin();

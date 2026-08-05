@@ -126,6 +126,13 @@ Templates and question-bank items are stored in the admin browser for this inter
 
 Sprint 9 adds question help text, placeholders, character and number limits, date restrictions, URL/number/date/time/rating/linear-scale/acknowledgment questions, custom validation messages, publish-time checks, unsaved-change warnings, branding controls, and optional post-submission redirects. No database migration is required because these settings are stored inside each form's JSON data.
 
-## Sprint 10 analytics
+## Sprint 12: production hardening
 
-Run `supabase/migrate-sprint-10.sql` once in the Supabase SQL editor before using analytics. The analytics dashboard is available at `/forms/[form-id]/analytics` and tracks anonymous views, starts, completions, abandonment, completion time, device/browser/country summaries, and score performance. FormFlow does not store participant IP addresses for analytics.
+Run `supabase/migrate-sprint-12.sql` once. New admin pages:
+
+- `/settings` — organization defaults, maintenance/read-only controls, retention and session policy.
+- `/system` — deployment diagnostics, full JSON backup/restore, and retention cleanup.
+
+Optional Cloudflare variable: `ADMIN_SESSION_HOURS` (1–168, default 12). The setting page stores the policy; the environment variable enforces token lifetime.
+
+Before restoring or cleaning data, download a full backup from the System page.

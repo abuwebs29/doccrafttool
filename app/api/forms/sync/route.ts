@@ -3,10 +3,13 @@ import { isAdminRequest } from "@/lib/require-admin";
 import { getSupabaseAdmin } from "@/lib/supabase-server";
 import type { FormRecord } from "@/lib/types";
 import { writeAudit } from "@/lib/audit";
+import { getSystemSettings } from "@/lib/system-settings";
 
 export async function POST(request: Request) {
   try {
     if (!(await isAdminRequest())) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    const settings = await getSystemSettings();
+    if (settings.readOnlyMode) return NextResponse.json({ error: "The system is currently read-only." }, { status: 423 });
     const form = await request.json() as FormRecord;
     if (!form?.id || !form?.slug || !form?.status) {
       return NextResponse.json({ error: "Invalid form data." }, { status: 400 });

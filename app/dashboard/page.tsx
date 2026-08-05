@@ -169,7 +169,8 @@ export default function DashboardPage() {
             <SidebarItem icon={Archive} label="Archived" onClick={() => setFilter("archived")} />
             <Link href="/templates" className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-semibold text-slate-600 hover:bg-slate-50"><Sparkles size={18}/>Templates</Link>
           <Link href="/audit"><SidebarItem icon={History} label="Audit log" /></Link>
-            <SidebarItem icon={Settings} label="Settings" badge="Soon" />
+            <Link href="/settings"><SidebarItem icon={Settings} label="Settings" /></Link>
+            <Link href="/system"><SidebarItem icon={Settings} label="System health" /></Link>
           </nav>
           <div className="mt-10 rounded-2xl bg-slate-950 p-4 text-white">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-white/10"><CalendarClock size={18} /></div>
